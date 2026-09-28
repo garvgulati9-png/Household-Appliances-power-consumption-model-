@@ -1,0 +1,668 @@
+HOUSEHOLD POWER CONSUMPTION PREDICTION USING MACHINE LEARNING
+Internal Team Technical Manual — Review Preparation, Research Papers, Methods, Training & Viva Defence
+Purpose: This is NOT the final college report. It is a team handbook explaining what we built, why we built it, what the research papers did, what our code is doing, what “training” means, how to interpret R²/MAE/RMSE, and how to defend the work.
+Our current project in one sentence
+We use household indoor/outdoor environmental conditions and time-related information to predict the numeric household appliance electricity consumption value called “Appliances”. Because the output is a continuous number, this is a supervised regression problem.
+Current implementation status
+Item
+Current status
+Dataset loaded
+19,735 observations; 29 columns in our working dataframe
+Target
+Appliances
+Preprocessing
+Missing-value check, duplicate check, date conversion, time feature engineering
+Features created
+Hour, Day, Month, Weekday, Weekend
+Models tested
+Linear Regression, Random Forest, Extra Trees, XGBoost
+Best initial model
+Extra Trees
+Best current initial R²
+0.635898
+Next technical step
+Hyperparameter tuning and final validation
+Important warning for the team
+Do not call R² “accuracy” without qualification. For our regression problem, R² is the main goodness-of-fit metric we are reporting. A teacher may casually ask for “accuracy”, but the technically correct answer is that regression uses metrics such as R², MAE and RMSE rather than classification accuracy.
+Research-paper facts in this manual are taken from the five PDFs supplied for this project. Where a paper does not report a directly comparable metric, this manual explicitly says so instead of inventing a number.
+1. WHAT EXACTLY ARE WE TRYING TO BUILD?
+The project title is Household Power Consumption Prediction. The practical problem is simple: household electricity usage changes with time, appliance activity, temperature, humidity and other environmental conditions. If a machine-learning model can learn relationships between these inputs and past consumption, it can estimate consumption for new observations.
+Problem statement
+Given information available about a household at a particular observation time — such as indoor temperature/humidity, outdoor temperature/humidity, wind speed, pressure, visibility, lighting and time-derived variables — predict the household appliance energy-consumption value recorded as Appliances.
+Why this is machine learning
+We are not writing a rule such as “if temperature is high, add 50 units”. There are many interacting variables and their relationships are not simply linear. We give historical examples to an algorithm. The algorithm learns patterns from the examples and then predicts the target for data it has not seen during training.
+Supervised learning
+Our dataset contains both inputs (features) and the answer (target). This is called supervised learning. During training, the model sees feature values together with the known Appliances value. It tries to reduce prediction error. During testing, we hide the true target from the model, generate predictions, and compare those predictions with the actual target values.
+Regression vs classification
+Task
+Output
+Example
+Our project?
+Classification
+Category/label
+Low / Medium / High
+No
+Regression
+Continuous number
+Energy consumption = 85.4
+YES
+Time-series forecasting
+Future value using past sequence
+Next-hour load
+Related, but our current implementation is primarily supervised tabular regression
+What “our model” means
+At the moment, “our model” is not a brand-new ML algorithm invented by us. Our contribution is the complete application of established methods to our selected household-energy dataset: data preparation, feature engineering, model comparison, evaluation, selection of the best model, and later tuning/deployment. The best-performing algorithm in our initial experiments is Extra Trees Regressor.
+One sentence for faculty
+“We formulated household appliance consumption prediction as a supervised regression problem, engineered temporal features from the timestamp, compared four regression algorithms, and selected Extra Trees because it gave the highest R² among our initial experiments.”
+2. OUR DATASET — WHAT IS INSIDE IT?
+Our working dataset is the Smart Home / Appliances Energy Prediction dataset used in our notebook. The dataframe currently contains 19,735 observations and 29 columns. The dataset covers a period from 11 January 2016 to 27 May 2016 at 10-minute observation intervals. The supplied base research paper also describes the same public dataset family as 19,735 observations and 29 features with no missing values. fileciteturn5file3L178-L184
+Target variable
+Appliances is the value we want the model to predict. In our notebook it is an integer-valued consumption measurement. For ML terminology: y = Appliances.
+Main feature groups
+Feature group
+Examples
+Why useful
+Time
+date, Hour, Day, Month, Weekday, Weekend
+Usage changes by hour/day and household routine
+Indoor temperature
+T1–T9
+Different rooms have different thermal conditions
+Indoor humidity
+RH_1–RH_9
+Humidity is related to comfort/HVAC behaviour
+Outdoor weather
+T_out, RH_out, Press_mm_hg, Windspeed, Visibility, Tdewpoint
+Captures external environmental context
+Lighting
+lights
+Lighting activity contributes to electricity use
+Random/control
+rv1, rv2
+Very weak relationship; removed in our workflow
+What do T1, RH_1 etc. mean?
+The T variables represent temperature measurements at different indoor locations, while RH variables represent relative humidity at corresponding locations. T_out and RH_out describe outdoor temperature/humidity. Press_mm_hg is atmospheric pressure, Windspeed is wind speed, Visibility is visibility, and Tdewpoint is dew-point temperature.
+Why environmental conditions matter
+The research literature supports the idea that weather and environmental variables affect energy use. The base paper explicitly uses timestamps, temperature, humidity and weather data and reports that the hour feature is particularly important. fileciteturn5file0L23-L41
+Why this dataset fits our topic
+It is much richer than a simple electricity-bill table. It lets us investigate the relationship between consumption and environmental/time conditions, which also connects naturally with the research papers that emphasize temperature, humidity, weather and time.
+3. JSON, CSV AND WHY WE CONVERTED/LOADED THE DATA
+Why did our dataset look messy in VS Code?
+JSON is a structured data-exchange format. It is excellent for storing nested objects and exchanging data between applications, but it is not always visually convenient for tabular inspection in a normal text editor. A notebook DataFrame is better for analysis because rows and columns can be inspected, filtered, summarized and plotted.
+What Pandas does
+Pandas provides the DataFrame structure we used. A DataFrame is essentially a table with named columns and indexed rows. It gives us operations such as read_json(), info(), describe(), isnull(), duplicated(), corr(), and feature manipulation.
+import pandas as pd
+df = pd.read_json("energydata_complete.json")
+This code imports Pandas and creates a DataFrame called df from the JSON file. It does not train a model. It only gets the data into a form Python can work with.
+What we checked
+df.shape — tells us how many rows and columns we have.
+df.info() — shows column names, data types and non-null counts.
+df.describe() — gives count, mean, standard deviation, minimum, quartiles and maximum for numeric columns.
+df.isnull().sum() — checks missing values. Our current output showed zero missing values.
+df.duplicated().sum() — checks duplicate rows; our current workflow reported no duplicates.
+Important distinction: cleaning vs transformation
+Cleaning means identifying problems such as missing, duplicated or invalid data. Transformation means changing a usable feature into a representation that helps the model. Converting date into Hour/Day/Month/Weekday/Weekend is feature engineering/transformation, not simply “cleaning”.
+What we should say
+“We first inspected the raw dataset, verified its structure and quality, then transformed the timestamp into numerical time features so the ML algorithms could use temporal information.”
+Code source defence
+We should be honest: the code is not copied line-for-line from a single paper. We use standard Python libraries and standard implementations of algorithms. The research papers guide the methodology and model choices; the actual implementation is our notebook workflow using Pandas, scikit-learn and XGBoost.
+4. PREPROCESSING AND FEATURE ENGINEERING — WHAT DID WE ACTUALLY DO?
+Step 1 — Convert date to datetime
+A timestamp is not directly useful to a tree/regression model in its original text form. We converted it to a datetime type so Python can extract meaningful components.
+Step 2 — Create time features
+Hour: captures daily routine. Energy usage can differ between morning, afternoon, evening and night.
+Day: identifies the day within the month.
+Month: provides a coarse seasonal/monthly signal.
+Weekday: distinguishes working days from weekends.
+Weekend: a simple 0/1 indicator for weekend behaviour.
+Step 3 — Remove date
+After extracting the useful time components, we do not need the original datetime string as a normal numeric feature in our current tabular model. We therefore remove the original date column after extracting its information.
+Step 4 — Remove rv1 and rv2
+The two variables rv1 and rv2 are random control variables in the dataset and have essentially no useful linear correlation with Appliances. Keeping irrelevant noise can make interpretation harder. We removed them in our workflow.
+Step 5 — Define X and y
+X = df.drop("Appliances", axis=1)
+y = df["Appliances"]
+X means the input feature matrix. y means the target we want to predict.
+Step 6 — Train/test split
+We separate the available examples into training data and test data. The training part is used to learn the model. The test part is held back until after training. This is essential because evaluating a model on the same data used to learn it can give an overly optimistic result.
+What is overfitting?
+Overfitting happens when a model learns the training examples too specifically — including noise — and therefore performs poorly on unseen data. A model with excellent training performance but much worse test performance is a warning sign.
+Why not simply use correlation to remove every weak feature?
+Correlation measures a particular kind of relationship, commonly linear correlation. A feature can have low linear correlation but still matter through nonlinear interactions. Therefore, correlation is a useful EDA guide, not an automatic proof that a feature is useless.
+5. WHAT DOES “TRAINING THE MODEL” ACTUALLY MEAN?
+This is the part the team must understand before the review.
+Training in simple language
+Imagine giving a student 10,000 solved examples. The student studies the relationship between the question and the answer. Later, you give the student new questions without answers and check how close the answers are. ML training is conceptually similar.
+In our project
+We provide X_train (environmental/time features) and y_train (known Appliances values).
+The algorithm builds an internal mathematical/decision structure that maps X to y.
+It repeatedly tries to reduce prediction error according to the algorithm’s learning procedure.
+After fitting, the trained object contains the learned structure.
+We use X_test to generate predictions without giving the model y_test.
+We compare predictions with y_test using R², MAE and RMSE.
+fit() vs predict()
+model.fit(X_train, y_train)
+pred = model.predict(X_test)
+fit() means learn from the training examples. predict() means use the learned model to estimate outputs for new inputs.
+What is a parameter vs hyperparameter?
+A parameter is something the model learns during training. A hyperparameter is a setting we choose before/during the training procedure, such as the number of trees, maximum tree depth or minimum samples per split. Hyperparameter tuning searches for better settings.
+Why we compare models
+No single algorithm is guaranteed to be best for every dataset. The base paper itself compared Random Forest, Extra Trees, SVR and XGBoost and found Extra Trees best for its experiment. fileciteturn5file0L23-L41 We followed the research idea of comparing multiple models rather than assuming one algorithm will win.
+Training is not “teaching the model everything”
+The model only learns patterns available in the training data. It does not understand electricity like a human engineer. It learns statistical relationships that can be useful for prediction.
+6. LINEAR REGRESSION — OUR BASELINE
+What is Linear Regression?
+Linear Regression tries to represent the target as a weighted combination of input variables. In simple form: y = b0 + b1x1 + b2x2 + … + bnxn. The model learns the coefficients so its predictions are as close as possible to the training targets under its fitting objective.
+Why did we use it?
+Because it is a simple baseline. Before using complex ensemble models, it is useful to ask: “How well can a simple model do?” If a complex model improves substantially, we have evidence that nonlinear relationships matter.
+Why did it perform poorly for us?
+Our initial R² was approximately 0.17. That means the simple linear relationship did not explain a large share of the variation in Appliances on our test set. Household energy consumption is affected by nonlinear interactions and behavioural/time patterns, so a straight-line model can be too restrictive.
+Advantages
+Very fast to train.
+Easy to explain.
+Good baseline.
+Coefficients can be interpreted when features are prepared appropriately.
+Limitations
+Assumes a linear form.
+Can struggle with nonlinear feature interactions.
+Sensitive to feature representation and outliers.
+A low R² here does not mean ML failed; it tells us this particular model is too simple for the relationship.
+Our result
+Model
+R²
+MAE
+RMSE
+Linear Regression
+0.170653
+52.5652
+91.1008
+Defence answer
+“We used Linear Regression as our baseline. Its R² was only about 0.17, so we concluded that a simple linear relationship was insufficient and moved to nonlinear ensemble models.”
+Research connection
+Sustainable EnergySense also uses Linear Regression, but for a different task: it predicts future electricity bills from user-provided past bill information and chose Linear Regression partly because it is lightweight for smartphone use. fileciteturn6file8L376-L394
+7. RANDOM FOREST — OUR FIRST STRONG ENSEMBLE
+What is a Decision Tree?
+A decision tree repeatedly asks questions about features, such as “Is Hour less than 18?” or “Is temperature above a threshold?” It divides the data into smaller groups until it can make predictions from the resulting regions.
+What is Random Forest?
+Random Forest creates many decision trees and combines their predictions. The idea is that many somewhat different trees can produce a more stable prediction than one tree. Randomness is introduced through sampling/features, which reduces the chance that all trees make exactly the same mistakes.
+Why useful for our dataset?
+Can learn nonlinear relationships.
+Can capture interactions between temperature, humidity, lighting and time.
+Usually needs less manual feature scaling than distance-based or linear methods.
+Works naturally with tabular numeric data.
+Our result
+Model
+R²
+MAE
+RMSE
+Random Forest
+0.567393
+30.6662
+65.7962
+This was a large improvement over Linear Regression. The key lesson is that our dataset contains patterns that are better represented by nonlinear tree-based models.
+Random Forest vs Extra Trees
+They are related but not identical. Extra Trees introduces stronger randomisation when constructing trees. The base paper explains that Extra Trees combines multiple trees while using a strategy that makes trees less correlated, which can improve robustness and accuracy. fileciteturn7file3L154-L172
+Faculty defence
+Q: Why not stop at Random Forest? A: “Because we did not assume it was optimal. We compared another ensemble tree method, Extra Trees, and it achieved a higher R² on our test data.”
+Important concept: ensemble
+Ensemble learning means combining multiple models — often decision trees — to obtain a stronger predictor. The 2024 Scientific Reports paper also emphasizes that ensemble approaches can handle linear/nonlinear relationships and multiple input attributes. fileciteturn3file2L72-L81
+8. EXTRA TREES — OUR CURRENT BEST MODEL
+What is Extra Trees Regressor?
+Extra Trees Regressor is an ensemble of decision trees designed for regression. It builds many trees with additional randomness. The individual tree predictions are aggregated to produce the final numeric prediction.
+Why it matters to our project
+Extra Trees is currently our best initial model. It reached R² ≈ 0.6359, higher than Random Forest, XGBoost and Linear Regression in our experiment.
+Our result
+Model
+R²
+MAE
+RMSE
+Extra Trees
+0.635898
+27.1559
+60.3623
+How to imagine it
+Think of 300 different experts, each seeing the problem slightly differently and building a decision-tree-based estimate. Instead of trusting one expert, we average their outputs. The randomness helps make the experts less identical.
+Advantages
+Strong for tabular data.
+Captures nonlinear relationships.
+Captures feature interactions.
+Usually does not require feature scaling.
+Can provide feature importance.
+Often robust against overfitting compared with a single deep tree.
+Limitations
+More computationally expensive than one tree or linear regression.
+Individual decisions are less interpretable than a simple linear equation.
+Feature importance is not automatically causal importance.
+Performance depends on hyperparameters and data quality.
+Why Extra Trees is our current model
+The answer is experimental, not theoretical: “Among the four models we tested on our held-out test data, Extra Trees produced the highest R² and the lowest MAE and RMSE. Therefore, it is our current best model.”
+Base paper connection
+This is the strongest reason we selected the 2025 API paper as our base paper. It used the same broad household-energy dataset structure, compared RF, Extra Trees, SVR and XGBoost, and also selected Extra Trees as its best model. Its reported Extra Trees R² was 0.7441. fileciteturn5file6L303-L324
+But do NOT claim our 0.636 is already better
+Our current result is lower than the base paper's reported 0.7441. We are still tuning and validating. Also, results from different experiments are not automatically comparable unless the dataset split, preprocessing, features and evaluation protocol are comparable.
+9. XGBOOST — THE OTHER STRONG MODEL WE TESTED
+What is boosting?
+Boosting builds models sequentially. Instead of making many independent trees and averaging them, a boosting algorithm builds a new tree that focuses on correcting errors made by previous trees.
+What is XGBoost?
+XGBoost is an optimized gradient-boosting implementation. It is widely used for structured/tabular data. It can model nonlinear relationships and interactions and includes regularization and efficient training mechanisms.
+Our result
+Model
+R²
+MAE
+RMSE
+XGBoost
+0.589820
+30.6686
+64.0680
+Why did it not win?
+A model does not win because it is more famous or more advanced. It wins only if it performs better on the evaluation data under the chosen experiment. In our current configuration, XGBoost was below Extra Trees.
+Advantages
+Excellent performance on many tabular datasets.
+Captures nonlinear patterns.
+Can model complex interactions.
+Supports regularization and many tuning options.
+Limitations
+More hyperparameters to manage.
+Can overfit if poorly tuned.
+Training can be more involved than simple tree ensembles.
+Interpretation is less straightforward than linear regression.
+Why keep the experiment?
+Because a model that performs second-best is still valuable evidence. It demonstrates that we compared alternative nonlinear learners. Our results table is part of the scientific story.
+Faculty answer
+“XGBoost is a gradient-boosting tree method. It builds trees sequentially to reduce previous errors. It achieved R²≈0.590 in our initial experiment, so Extra Trees remained our best model.”
+Research comparison
+The base paper also included XGBRegressor and reported R² 0.7220 for XGB, below its Extra Trees result of 0.7441. fileciteturn5file6L317-L324
+10. R², MAE, MSE AND RMSE — THE METRICS WE MUST KNOW
+R² — Coefficient of Determination
+R² measures how well the model explains variation in the target compared with a simple mean-based reference. A value closer to 1 generally indicates better explanatory fit. R² = 0 means the model is no better than predicting the average target under the standard definition; negative values can occur when predictions are worse than that baseline.
+Simple example: If actual energy values vary a lot and our model follows those ups and downs reasonably well, R² will be higher. If the model predicts almost the same value regardless of the inputs, R² will be low.
+Formula: R² = 1 − [sum of squared prediction errors / sum of squared deviations from the actual mean]. The base paper defines R² as the coefficient of determination and uses it to describe how well independent variables explain target variability. fileciteturn7file6L376-L382
+MAE — Mean Absolute Error
+MAE is the average absolute difference between actual and predicted values. If MAE = 27, the model's predictions are off by about 27 target units on average, in absolute terms. Lower is better.
+It is easy to explain to faculty because it stays in the target's units. The base paper describes MAE as the average absolute error and says lower is better. fileciteturn7file6L365-L369
+MSE — Mean Squared Error
+MSE averages squared prediction errors. Squaring makes large errors much more influential. It is useful as a training/evaluation objective but its units are squared.
+RMSE — Root Mean Squared Error
+RMSE is the square root of MSE, so it returns to the target's units. Lower is better. Because errors are squared before averaging, RMSE penalizes large errors more strongly than MAE.
+MAPE
+MAPE expresses error as a percentage relative to actual values. It is intuitive, but can become problematic when actual values are zero or very close to zero.
+One-line memory trick
+Metric
+Remember
+R²
+Higher is better; how much variation is explained
+MAE
+Average absolute error; lower is better
+MSE
+Squared error; large errors hurt more
+RMSE
+Square root of MSE; lower is better
+MAPE
+Average percentage error; lower is better
+11. OUR RESULTS — HOW TO READ THEM
+Model
+R²
+MAE
+RMSE
+Interpretation
+Linear Regression
+0.170653
+52.5652
+91.1008
+Weak baseline
+Random Forest
+0.567393
+30.6662
+65.7962
+Strong improvement
+Extra Trees
+0.635898
+27.1559
+60.3623
+Best initial model
+XGBoost
+0.589820
+30.6686
+64.0680
+Good, but below Extra Trees
+What changed from the first attempt?
+Our first model-comparison experiment gave very poor Linear Regression performance (R²≈0.17). Tree ensembles improved substantially. This is exactly the type of progression we should document in the report: baseline → nonlinear models → comparison → best model.
+What does R²=0.636 mean?
+It means that, under our particular test setup, the Extra Trees predictions explain about 63.6% of the variation in the test target relative to the standard mean baseline. It does NOT mean “the model is 63.6% correct” in the classification sense.
+Why our result is not yet above the base paper
+The base paper reports Extra Trees R²=0.7441, while our current initial result is 0.6359. The papers themselves warn that direct comparisons can be difficult because datasets, features, collection methods and evaluation procedures differ. The Scientific Reports paper explicitly states that direct comparison across studies is challenging when datasets, methodology, features and validation indicators differ. fileciteturn3file8L462-L490
+What we do next
+Hyperparameter tuning for Extra Trees.
+Use cross-validation appropriately for model selection.
+Check whether the feature set and split strategy are helping or hurting.
+Evaluate the final model on a held-out test set only after tuning.
+Document every experiment so we can explain why the final model was selected.
+Important ethics point
+We must never change the test result simply to beat a paper. We can improve the model honestly by improving preprocessing, features, validation and hyperparameters. The final reported score must come from a clearly described evaluation procedure.
+12. BASE PAPER — PAPER 1: THE ONE WE SHOULD DEFEND
+Paper
+“A machine learning-powered energy consumption prediction system with API” by Toyeeb Adekunle Abd’Azeez and Lanre Olatomiwa, Journal of Electrical Systems and Information Technology (2025). The supplied PDF identifies the paper and reports its model comparison. fileciteturn4file6L369-L402
+Why we selected it as the base paper
+It is directly about household energy consumption prediction.
+It uses a public low-energy-building dataset with 29 features and 19,735 observations.
+It explicitly uses temperature, humidity, weather and time-related information.
+It compares Random Forest, Extra Trees, SVR and XGBoost — very close to our model-comparison strategy.
+Extra Trees is the best-performing model in their experiment, which gives us a clear methodological starting point.
+The paper states that the dataset has 29 features and 19,735 observations with no missing values and describes a four-stage workflow: data acquisition/preprocessing, feature selection, model training and model deployment. fileciteturn5file3L178-L190
+Their models and results
+Model
+MAE
+R²
+MAPE
+RMSE
+Extra Trees
+8.82
+0.7441
+16.27%
+11.75
+Random Forest
+8.84
+0.7390
+16.41%
+11.82
+XGBoost
+9.20
+0.7220
+17.22%
+12.25
+SVR
+14.80
+0.3086
+26.20%
+19.31
+These results are directly reported in the paper. fileciteturn5file6L303-L324
+Their tuning
+After base training/testing, they used RandomizedSearchCV for 10 iterations with 10-fold cross-validation, producing 100 fits, and tuned Extra Trees parameters including number of estimators, max_features, max_depth, min_samples_leaf, min_samples_split and bootstrap. fileciteturn7file3L163-L172
+Their practical contribution
+They saved the trained model and integrated it into a Flask-based web application/API so users could submit information and receive predictions. fileciteturn5file8L416-L429
+Their limitation / gap relevant to us
+The paper highlights the importance of time, environmental conditions and practical deployment. It also discusses that many studies overlook time features and real-world application. fileciteturn5file2L121-L146
+13. PAPER 2 — HOUSEHOLD ELECTRICITY CONSUMPTION: ENSEMBLE + HYBRID
+Paper
+“Household electricity consumption prediction using database combinations, ensemble and hybrid modeling techniques”, Scientific Reports (2024), by Gaikwad Sachin Ramnath, R. Harikrishnan, S. M. Muyeen and Ketan Kotecha. fileciteturn3file0L6-L29
+What problem did they solve?
+They focused on month-ahead household electricity consumption prediction. Their challenge was that household consumption depends on many factors and can show linear, nonlinear and nonstationary behaviour.
+Their data
+They used two original datasets: questionnaire survey (QS) and monthly consumption (MC), collected from 225 consumers in Maharashtra. They generated additional combinations such as QS+MC and QsEq+MC. fileciteturn3file0L12-L20
+Their methodology
+Assess data quality.
+Use correlation methods and feature engineering.
+Create multiple dataset combinations.
+Build heterogeneous ensemble prediction models.
+Fine-tune model hyperparameters using 10-fold cross-validation.
+Finally combine selected algorithms into a hybrid SMSDAR model.
+Models
+They evaluated seven ML algorithms across their heterogeneous ensemble experiments, including MLR, SVM, DT, RF, SGD, MLP and Adaptive Boosting. The final hybrid model was SMSDAR: SVM + MLR + SGD + DT + AB + RF.
+Results
+On the MC dataset, Random Forest achieved RMSE 36.18 kWh, MAE 25.73 kWh and R² 0.76. On QsEq+MC, Adaptive Boosting achieved R² 0.76. Their final SMSDAR hybrid achieved RMSE 22.02 kWh, MAE 13.04 kWh and R² 0.92. fileciteturn3file2L157-L181
+Advantages
+Strong focus on data quality and feature engineering.
+Tests multiple dataset combinations.
+Uses cross-validation and hyperparameter tuning.
+Hybrid approach can improve predictive performance.
+Limitations
+The authors note that direct comparisons with other studies are difficult because of differences in data, features, methodology and validation. They also note regional limitations and the need for broader comparison. fileciteturn3file8L462-L490
+What we learn
+The biggest lesson for our project is that preprocessing, feature engineering, validation and ensemble/hybrid methods can matter as much as the choice of one algorithm.
+14. PAPER 3 — TEMPERATURE CUMULATIVE EFFECT + VMD + BiLSTM + ATTENTION + XGBOOST
+Paper
+“Short-term residential electricity consumption forecast considering the cumulative effect of temperature, dual decomposition technology and integrated deep learning”, Energy Informatics (2025), by Lanlan Wang and co-authors. fileciteturn2file2L24-L62
+What problem?
+Short-term residential electricity consumption is noisy, nonstationary and influenced by many factors. The paper argues that a single model struggles with these complexities.
+Three-stage methodology
+Temperature correction: model the cumulative effect of temperature and construct adjusted hourly temperature data using meteorological factors.
+Data decomposition: use NGO-VMD, an optimized Variational Mode Decomposition approach, to decompose the consumption signal and reduce noise.
+Prediction + correction: use BiLSTM with Attention Mechanism to predict decomposed components, then use XGBoost to correct residual errors and combine the outputs.
+What is BiLSTM?
+LSTM is a recurrent neural network designed to retain useful information across time. BiLSTM processes sequences in both forward and backward directions, allowing the model to use broader temporal context. Attention assigns more weight to influential inputs/time steps.
+Why XGBoost at the end?
+The paper uses XGBoost as an error-correction model: residual differences left by BiLSTM-AM are learned and corrected. The paper states that this stage reduces errors and that removing XGBoost worsens performance. fileciteturn3file9L511-L524
+Results
+Their complete configuration reported RMSE 47,694.9090, MAPE 0.0323, MAE 38,566.8668 and R² 0.9721 in the ablation table. Removing temperature correction, decomposition, XGBoost correction or attention caused progressively worse R² values: 0.9476, 0.8546, 0.8191 and 0.8000 respectively. fileciteturn7file1L77-L83
+Advantages
+Explicitly models temperature accumulation.
+Noise decomposition can make the signal easier to learn.
+Attention can focus on influential temporal factors.
+Residual XGBoost correction adds another error-reduction stage.
+Limitations
+The paper itself states that validation is primarily on a single dataset from one geographical location, which can limit generalizability; it recommends testing other regions/climates and further sensitivity/scalability analysis. fileciteturn3file9L531-L537
+Our relationship to this paper
+We are not implementing this complex three-stage deep-learning pipeline for the first review. We use it as literature evidence that temperature and environmental context can matter and that advanced temporal models are a future direction.
+15. PAPER 4 — MULTIVARIATE LSTM + WEATHER + SELF-SUPERVISED LEARNING
+Paper
+“Enhanced household energy consumption forecasting using multivariate long short-term memory (LSTM) networks with weather data integration”, Results in Engineering (Elsevier, 2025), by Aditya Pai H and co-authors. fileciteturn2file1L3-L18
+Core idea
+The paper proposes a TinyML-optimized multivariate LSTM that uses environmental/weather factors and self-supervised learning to enrich features while keeping computational requirements low.
+Preprocessing
+The paper describes normalization, day resampling and feature engineering. It also uses self-supervised learning to enrich weather-related features. fileciteturn4file1L88-L103
+Training
+Their LSTM uses MSE as the loss function and Adam as the optimizer. They tested model depth and neuron counts and found one LSTM layer with 50 neurons to provide a good accuracy/computation trade-off. Their described workflow includes data collection, preprocessing, normalization, feature engineering, SSL augmentation, model training, evaluation and TinyML deployment. fileciteturn4file2L136-L175
+What is loss?
+A loss function is a number measuring how bad the model's predictions are during training. MSE squares errors and averages them, so large mistakes receive stronger penalties. Training tries to reduce this loss.
+What is an optimizer?
+An optimizer changes the model's learnable parameters to reduce the loss. Adam is an adaptive optimization algorithm widely used for neural networks.
+Results
+Model
+MSE
+RMSE
+MAE
+MAPE
+R²
+Baseline
+0.071
+0.266
+0.177
+0.236
+0.077
+LSTM Univariate
+0.068
+0.261
+0.173
+0.307
+0.106
+LSTM Multivariate
+0.022
+0.150
+0.110
+0.173
+0.700
+These values are reported in the paper's comparison table. fileciteturn7file0L25-L46
+Advantages
+Handles multivariate temporal relationships.
+Weather data improves context.
+SSL enriches weather features.
+TinyML focus addresses memory/inference constraints.
+Limitations
+The authors note dependence on external weather data, limited generalizability from a single household dataset, and interpretability concerns associated with deep learning. fileciteturn4file8L480-L498
+Our relationship
+This paper supports our decision to include environmental variables, but its LSTM/SSL/TinyML architecture is more complex than needed for our first review.
+16. PAPER 5 — SUSTAINABLE ENERGYSENSE
+Paper
+“Sustainable EnergySense: a predictive machine learning framework for optimizing residential electricity consumption”, Discover Sustainability (2024), by Murad Al-Rajab and Samia Loucif. fileciteturn6file8L376-L394
+What makes this paper different?
+This is not just a prediction notebook. It proposes a smart application combining Augmented Reality (AR), YOLO object detection, electricity-consumption calculation and Linear Regression forecasting.
+How it works
+YOLO detects household appliances using the smartphone camera.
+The application identifies the appliance and obtains information needed for consumption estimation.
+Users provide operating-time information.
+The system estimates appliance electricity consumption.
+Linear Regression predicts upcoming electricity bills/consumption using past bill information.
+The application also provides energy-saving tips.
+The paper states that its prediction feature uses past monthly electricity bills to predict the upcoming three months and that Linear Regression was selected partly because of its computational efficiency for smartphones. fileciteturn6file0L15-L32
+Training data
+For its ML prediction model, the paper describes a dataset with appliance-related features such as appliance name and number of hours operated per month, including examples such as air conditioners, refrigerators, televisions, mobile devices and washing machines. fileciteturn6file5L251-L264
+Advantages
+Very practical mobile application concept.
+Combines prediction with real-time appliance detection.
+Lightweight Linear Regression is suitable for mobile deployment.
+Provides user-facing energy-saving guidance.
+Limitations
+Prediction model is much simpler than our multivariate environmental dataset approach.
+The paper's prediction input is based on user-provided past bills rather than our rich 10-minute sensor data.
+The authors planned to test more ML algorithms in future work. fileciteturn6file9L434-L460
+The application also depends on AR/YOLO components, which adds system complexity outside the regression model.
+Why it belongs in our literature review
+It demonstrates a different path: a lightweight prediction model integrated into a real application. It helps us explain that ML projects can have both a predictive model and an application/deployment layer.
+17. ALL FIVE PAPERS — QUICK TEAM COMPARISON
+Paper
+Main method
+Reported best result
+Main advantage
+Main limitation
+P1 Base (2025)
+RF, Extra Trees, SVR, XGB + tuning
+ETR R²=0.7441
+Very close to our dataset/problem; deploys via API
+Result depends on its specific split/preprocessing
+P2 Scientific Reports (2024)
+Dataset combinations + HEP + SMSDAR hybrid
+Hybrid R²=0.92; RMSE 22.02
+Strong data-quality + ensemble/hybrid workflow
+Region/data-specific; cross-study comparison difficult
+P3 Energy Informatics (2025)
+Temp correction + NGO-VMD + BiLSTM-AM + XGB
+Complete R²=0.9721 in ablation table
+Handles temperature accumulation, noise and temporal complexity
+Single-region validation; very complex
+P4 Results in Engineering (2025)
+Multivariate LSTM + weather + SSL + TinyML
+LSTM Multivar R²=0.700
+Captures temporal/weather relationships with edge focus
+Weather dependence, single-household generalizability, interpretability
+P5 EnergySense (2024)
+YOLO + AR + Linear Regression
+Paper does not give a directly comparable R² table in the supplied sections
+Practical mobile application and lightweight prediction
+Bill-based/simple regression; less rich than our sensor dataset
+Critical comparison warning
+Do not put all five R² values in one ranking and claim that the largest number automatically means the best project. The papers use different datasets, units, horizons, preprocessing and validation designs. P3's very high R² and P2's hybrid R²=0.92 are not directly comparable with our current 10-minute tabular test result. The P2 paper explicitly warns about cross-study comparison problems. fileciteturn3file8L462-L490
+Our research gap / project positioning
+Our practical gap is not “we invented Extra Trees”. Instead, we are building a clean, reproducible student implementation around a rich household environmental dataset, comparing multiple standard regression algorithms, documenting the effect of preprocessing and feature engineering, and attempting honest improvement over the base paper's Extra Trees result. We can later add time-aware validation, stronger tuning and deployment.
+What we should NOT claim
+Do not claim we invented Extra Trees.
+Do not claim our current R²=0.636 is higher than the base paper's 0.7441.
+Do not call R² a classification accuracy percentage.
+Do not claim the model understands human behaviour like a person.
+Do not say the code was copied from a paper. Say the papers informed the methodology and the algorithms were implemented using standard libraries.
+18. HOW WE SHOULD EXPLAIN OUR CODE TO THE FACULTY
+The complete pipeline
+DATA → QUALITY CHECK → FEATURE ENGINEERING → TRAIN/TEST SPLIT → MODEL TRAINING → PREDICTION → METRICS → MODEL COMPARISON → TUNING → FINAL MODEL
+What each code block means
+Code/action
+Meaning in plain English
+pd.read_json(...)
+Load raw JSON into a DataFrame
+df.info()
+Inspect structure and data types
+df.describe()
+Understand numerical distributions
+df.isnull().sum()
+Find missing values
+df.duplicated().sum()
+Find duplicate rows
+date → Hour/Day/Month/...
+Convert timestamp into learnable time features
+X / y
+Separate inputs from target
+train_test_split
+Hold out unseen examples for testing
+model.fit(X_train,y_train)
+Train/learn from examples
+model.predict(X_test)
+Generate predictions for unseen inputs
+r2_score(...)
+Measure explained variation
+mean_absolute_error(...)
+Measure average absolute error
+sqrt(mean_squared_error(...))
+Measure RMSE
+feature_importances_
+Inspect tree-model feature importance
+RandomizedSearchCV
+Search a subset of hyperparameter combinations using cross-validation
+joblib.dump(...)
+Save the trained model to a file
+Where did the code come from?
+Answer exactly like this: “We used standard implementations from Python ML libraries. The research papers informed our choice of problem formulation, preprocessing ideas and algorithms. We implemented the workflow ourselves in Python rather than copying one paper's source code.”
+If teacher asks: did you understand every line?
+“We understand the purpose of each major stage. Some library functions internally perform complex mathematics; we are using established implementations rather than reimplementing algorithms from scratch.”
+Why use libraries?
+Scikit-learn and XGBoost provide tested implementations, metrics, model training and tuning tools. In applied ML, using reliable libraries is normal. Reimplementing Random Forest or XGBoost from scratch would be unnecessary for this project and would increase the chance of errors.
+If asked what our training data is
+“The training data consists of the input features from the training portion of our dataset and the corresponding known Appliances target values. The model learns the relationship between those inputs and the target.”
+19. VIVA DEFENCE — QUESTIONS YOU SHOULD MEMORIZE
+Q: What is the target variable?
+A: Appliances — the numeric household appliance energy-consumption value we are predicting.
+Q: Why is this regression?
+A: Because the target is a continuous numeric value, not a category.
+Q: What is R²?
+A: Coefficient of determination; it tells us how much target variation the model explains relative to the standard mean baseline. Higher is generally better.
+Q: What is MAE?
+A: Average absolute prediction error. Lower is better.
+Q: What is RMSE?
+A: Square root of average squared error. Lower is better and it penalizes large errors more strongly.
+Q: Why did Linear Regression perform poorly?
+A: The relationship between environmental/time variables and consumption is not adequately represented by one linear equation.
+Q: Why Random Forest?
+A: It can learn nonlinear relationships and feature interactions using many decision trees.
+Q: Why Extra Trees?
+A: It is a tree ensemble with additional randomization; in our experiment it produced the highest R² and lowest MAE/RMSE.
+Q: Why XGBoost?
+A: It is a strong gradient-boosting model for tabular data, so we used it as another nonlinear comparison.
+Q: What is training?
+A: Learning patterns from feature/target examples using the model's fitting algorithm.
+Q: What is testing?
+A: Evaluating predictions on data withheld from training.
+Q: What is overfitting?
+A: When a model learns training data too specifically and performs poorly on unseen data.
+Q: Why feature engineering?
+A: To transform raw information into features that expose useful patterns, such as Hour and Weekend.
+Q: Why Hour?
+A: Household behaviour changes by time of day; the base paper also found Hour particularly important.
+Q: Why remove rv1 and rv2?
+A: They are random variables with little useful predictive relationship to the target.
+Q: Did we invent the algorithms?
+A: No. We applied standard algorithms using established libraries and designed our project workflow around the research problem.
+Q: Where did the code come from?
+A: Standard Python libraries and our implementation; research papers guided methodology/model selection, not copied source code.
+Q: Why compare papers?
+A: To understand existing methods, results and limitations and position our approach relative to prior work.
+Q: Why is our R² not automatically comparable to every paper?
+A: Because datasets, splits, preprocessing, horizons, units and evaluation protocols differ.
+Q: What is our current best result?
+A: Extra Trees: R² 0.635898, MAE 27.1559, RMSE 60.3623 in our initial experiment.
+Q: What is our next step?
+A: Tune the best model, validate it properly, then finalize graphs, report and deployment if required.
+Final 30-second defence
+“Our project predicts household appliance energy consumption using indoor and outdoor environmental conditions and time information. We formulated it as supervised regression. We inspected and cleaned the dataset, engineered time features such as Hour and Weekend, and compared Linear Regression, Random Forest, Extra Trees and XGBoost. Linear Regression gave a low R² of about 0.17, while the tree-based methods performed much better. Extra Trees currently gave our best initial result with R²≈0.636, MAE≈27.16 and RMSE≈60.36. Our base paper used the same broad dataset family and also selected Extra Trees, reporting R²=0.7441 after tuning. We are now working on honest hyperparameter tuning and validation to improve our result.”
+20. TEAM WORK PLAN — WHAT WE DO NEXT
+Immediate technical tasks
+Freeze and save the current notebook before changing anything.
+Keep the four baseline experiments and their results.
+Run Extra Trees hyperparameter tuning using RandomizedSearchCV.
+Record best parameters, cross-validation score and final held-out test score.
+Generate feature-importance plot.
+Generate actual-vs-predicted plot.
+Generate model comparison table/graph.
+Save the final model with joblib.
+Only then finalize the report and PPT.
+What success looks like
+Success is not merely a high number. We need a reproducible experiment: the same notebook, same preprocessing, same split strategy, same metrics and a clearly recorded final model. If tuning improves R², we report it. If it does not, we report that honestly and explain why.
+What to say if the teacher asks why we did not use LSTM
+“We reviewed recent LSTM-based work, including multivariate LSTM with weather integration, but our first implementation focuses on standard supervised tabular regression because it is simpler, reproducible and appropriate for our current dataset and project timeline. LSTM/time-series sequence modelling is a future enhancement.”
+What to say if the teacher asks why not directly copy the base paper
+“We used it as a methodological reference, but our objective is to build and evaluate our own implementation. We compare the same family of models and then try to improve performance through our own preprocessing, feature engineering and tuning.”
+Final team rule
+Every number in the final report must be traceable to either our notebook or a cited research paper. Every research-paper claim must be traceable to the supplied PDF. If we do not know something, we say that it is future work rather than inventing an answer.
+Key sources supplied by the team
+Paper 1: A machine learning-powered energy consumption prediction system with API (2025).
+Paper 2: Household electricity consumption prediction using database combinations, ensemble and hybrid modeling techniques (Scientific Reports, 2024).
+Paper 3: Short-term residential electricity consumption forecast considering the cumulative effect of temperature, dual decomposition technology and integrated deep learning (Energy Informatics, 2025).
+Paper 4: Enhanced household energy consumption forecasting using multivariate LSTM networks with weather data integration (Results in Engineering, 2025).
+Paper 5: Sustainable EnergySense: a predictive machine learning framework for optimizing residential electricity consumption (Discover Sustainability, 2024).
+End of Team Manual — Version 1.0

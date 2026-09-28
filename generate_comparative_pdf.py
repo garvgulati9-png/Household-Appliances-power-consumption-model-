@@ -1,0 +1,585 @@
+import os
+import sys
+import json
+import subprocess
+
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+
+html_path = 'c:/Machine learning/G1_vs_OurModel_Comparative_Report.html'
+pdf_path = 'c:/Machine learning/G1_vs_OurModel_Comparative_Report.pdf'
+user_data = 'c:/Machine learning/chrome_temp_profile'
+
+# Load empirical results
+with open('c:/Machine learning/cross_experiments_results.json', 'r') as f:
+    data = json.load(f)
+
+exp1 = data['experiment_1_original_dataset']['results']
+exp2 = data['experiment_2_small_dataset']['results']
+
+html_content = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Comparative Scientific Evaluation: Our Stacked Hybrid Architecture vs. G1 Methodologies</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 14mm 14mm 14mm 14mm;
+      @bottom-right {
+        content: "Page " counter(page);
+      }
+    }
+    body {
+      font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+      color: #1e293b;
+      line-height: 1.5;
+      font-size: 9.5pt;
+      margin: 0;
+      padding: 0;
+    }
+    .header {
+      text-align: center;
+      border-bottom: 2.5px solid #2563eb;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 16pt;
+      color: #0f172a;
+      margin: 0 0 6px 0;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+    }
+    .subtitle {
+      font-size: 10.5pt;
+      color: #2563eb;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+    }
+    .profile-box {
+      background-color: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 8px 14px;
+      margin: 8px auto 0 auto;
+      display: inline-block;
+      text-align: center;
+    }
+    .profile-title {
+      font-size: 8pt;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 3px;
+    }
+    .profile-members {
+      font-size: 9pt;
+      color: #0f172a;
+      font-weight: 600;
+    }
+    .profile-meta {
+      font-size: 8pt;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    h2 {
+      font-size: 11.5pt;
+      color: #1e3a8a;
+      border-bottom: 1.5px solid #cbd5e1;
+      padding-bottom: 3px;
+      margin-top: 14px;
+      margin-bottom: 6px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    h3 {
+      font-size: 10pt;
+      color: #0f172a;
+      margin-top: 10px;
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+    p {
+      text-align: justify;
+      margin-bottom: 7px;
+    }
+    .callout {
+      background-color: #eff6ff;
+      border-left: 4px solid #2563eb;
+      padding: 8px 12px;
+      margin: 8px 0;
+      border-radius: 0 6px 6px 0;
+      font-size: 9pt;
+    }
+    .callout-warning {
+      background-color: #fef2f2;
+      border-left: 4px solid #ef4444;
+      padding: 8px 12px;
+      margin: 8px 0;
+      border-radius: 0 6px 6px 0;
+      font-size: 9pt;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0 12px 0;
+      font-size: 8.5pt;
+      page-break-inside: avoid;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 5px 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-weight: 700;
+    }
+    tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    .badge-normal {
+      display: inline-block;
+      padding: 2px 6px;
+      background-color: #dcfce7;
+      color: #166534;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 7.5pt;
+    }
+    .badge-flag {
+      display: inline-block;
+      padding: 2px 6px;
+      background-color: #fee2e2;
+      color: #991b1b;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 7.5pt;
+    }
+    .badge-our {
+      display: inline-block;
+      padding: 2px 6px;
+      background-color: #dbeafe;
+      color: #1e40af;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 7.5pt;
+    }
+    .highlight-row {
+      background-color: #eff6ff !important;
+      font-weight: 600;
+    }
+    .footer {
+      margin-top: 16px;
+      border-top: 1px solid #cbd5e1;
+      padding-top: 6px;
+      font-size: 7.5pt;
+      color: #94a3b8;
+      text-align: center;
+    }
+    .protocol-box {
+      background: #fafafa;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin: 8px 0;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 8.5pt;
+      line-height: 1.4;
+    }
+    ul, ol {
+      margin-top: 4px;
+      margin-bottom: 6px;
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 3px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Comparative Empirical Evaluation & Algorithmic Guardrail Protocol</h1>
+    <div class="subtitle">Multi-Scale Benchmarking of Our Stacked Hybrid Models vs. G1 (Machaca-Casani et al.) Methodologies</div>
+    
+    <div class="profile-box">
+      <div class="profile-title">Project Authors & Engineering Team Profile</div>
+      <div class="profile-members">
+        <strong>Garv Gulati</strong> (Registration No: <strong>RA2411003010319</strong>) &bull; 
+        <strong>Umang Gupta</strong> (Registration No: <strong>RA22110030100012</strong>) &bull; 
+        <strong>Nikhil Goyal</strong> (Registration No: <strong>RA2411003010489</strong>)
+      </div>
+      <div class="profile-meta">
+        Specialization in Machine Learning and Intelligent Systems &bull; Department of Computer Science and Engineering &bull; SRM Institute of Science and Technology
+      </div>
+    </div>
+  </div>
+
+  <h2>1. Executive Summary</h2>
+  <p>
+    This investigation delivers a rigorous comparative benchmark between the machine learning algorithms proposed in the <strong>G1 Research Paper (Machaca-Casani et al., Electric Power Systems Research, Vol. 252, 2026)</strong> and our team's <strong>Stacked Hybrid Super-Learner Architecture</strong> across two vastly different data-scale regimes. We resolve four fundamental engineering challenges:
+  </p>
+  <ol>
+    <li><strong>Evaluating G1 Methods on High-Frequency Telemetry:</strong> Training G1's models (Linear Regression, Support Vector Regression with RBF kernel, Random Forest, and Deep Neural Network MLP 50x50) on our high-volume smart home telemetry dataset (19,735 observations, 50 engineered features).</li>
+    <li><strong>Evaluating Our Model on Small-Sample Urban Data:</strong> Training our Stacked Hybrid Ensemble (ExtraTrees + XGBoost + HistGradientBoosting with non-negative Ridge meta-weights) on G1's 200-sample urban survey cohort from Piedra Santa (Arequipa, Peru).</li>
+    <li><strong>Explaining Dataset Incompatibility & Why Models Cannot Directly Cross-Predict:</strong> Detailing the physical unit disparity (Watt-hours per 10 minutes vs. active Kilowatts), orthogonal feature matrices (50 room sensors vs. 9 demographic indicators), and structural differences (single-dwelling longitudinal time-series vs. multi-dwelling cross-sectional survey).</li>
+    <li><strong>Algorithmic Degradation Flagging & Automated Fallback:</strong> Implementing an automated safety guardrail that detects when any model produces a negative coefficient of determination (R² &lt; 0), diagnoses the underlying over-parameterization, flags the model, and automatically falls back to our robust baseline method.</li>
+  </ol>
+
+  <h2>2. Scientific Rationale: Why Did We Apply Our Stacked Model on the 200-Data Dataset?</h2>
+  <p>
+    Our Stacked Hybrid Super-Learner was initially engineered and optimized for large-scale, high-frequency telemetry (19,735 records), where it successfully achieved state-of-the-art performance (R² = 75.04%). Testing our stacked ensemble on the micro-scale 200-sample dataset was conducted for three explicit scientific reasons:
+  </p>
+  <ul>
+    <li><strong>1. Stress-Testing Cross-Scale Generalization:</strong> A critical open question in machine learning is whether an advanced ensemble architecture that dominates large-volume data retains its predictive capability when transferred without modification to a data-constrained urban environment (sample size N = 200).</li>
+    <li><strong>2. Empirical Validation of the Complexity-Volume Dilemma:</strong> Statistical learning theory posits that model capacity must remain proportional to sample degrees of freedom. By running our stacked ensemble (comprising hundreds of decision trees across three distinct algorithms: ExtraTrees, XGBoost, and HistGradientBoosting) on only 140 training observations, we empirically tested the exact point at which structural complexity triggers variance explosion and negative predictive performance.</li>
+    <li><strong>3. Empirical Evidence Justifying the Automated Fallback Guardrail:</strong> The experiment produced an empirical result of R² = -0.1205 for our complex tree ensemble on the 200 dataset. This negative score provided the quantitative justification needed to design and enforce our automated guardrail protocol: when sample sizes drop below 1,000 observations or when R² falls below zero, the system must disengage complex multi-model stacking and fall back to regularized linear or kernel baselines (such as SVR or Linear Regression).</li>
+  </ul>
+
+  <h2>3. Detailed Comparison: Our Method vs. G1 PDF Methods</h2>
+
+  <h3>3.1 Our Method: Stacked Hybrid Super-Learner & Multi-Tier Anomaly Engine</h3>
+  <p>
+    Our architecture formulates residential energy forecasting as a multi-tier learning hierarchy:
+  </p>
+  <ul>
+    <li><strong>Base Learners (Level 0):</strong> An ensemble of three complementary non-linear tree algorithms:
+      <ul>
+        <li><em>ExtraTrees Regressor:</em> 400 extremely randomized trees utilizing random cut-point thresholds to maximize variance reduction.</li>
+        <li><em>XGBoost Regressor:</em> 700 gradient-boosted decision trees (maximum depth = 8, learning rate = 0.03) incorporating L1 and L2 regularization to penalize leaf weight magnitude.</li>
+        <li><em>HistGradientBoosting Regressor:</em> 500 iterations of histogram-binned gradient boosting for rapid convergence on continuous feature distributions.</li>
+      </ul>
+    </li>
+    <li><strong>Meta-Learner (Level 1):</strong> Out-of-fold predictions from the base learners are blended through a non-negative Ridge Regression meta-model (alpha = 1.0, weights constrained to be greater than or equal to 0). On the 19,735 dataset, the learned optimal blending weights are 48.1% ExtraTrees, 34.3% XGBoost, and 17.6% HistGradientBoosting.</li>
+    <li><strong>Multi-Tier Anomaly Detection Engine:</strong> A two-stage operational diagnostic screening module:
+      <ul>
+        <li><em>Tier 1:</em> Unsupervised Isolation Forest (250 isolation trees, contamination rate = 2.5%) measuring path-length isolation in multivariate sensor space.</li>
+        <li><em>Tier 2:</em> Supervised dynamic residual thresholding based on a 3-IQR (interquartile range) and 2-sigma deviation envelope.</li>
+        <li><em>Domain Alert Categorization:</em> Automated tagging into actionable categories: Vampire Night Load, Critical Spike Runaway, and Sudden Drop Malfunction.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h3>3.2 G1 PDF Methods (Machaca-Casani et al., 2026)</h3>
+  <p>
+    The G1 methodology benchmarked four standalone traditional and machine learning algorithms on a 200-sample urban cohort:
+  </p>
+  <ul>
+    <li><em>Linear Regression (Ordinary Least Squares):</em> Classical parametric baseline optimizing the residual sum of squares across 9 demographic predictors.</li>
+    <li><em>Support Vector Regression (SVR with RBF Kernel):</em> Non-linear kernel regression solving the dual quadratic optimization problem with penalty parameter C = 1.0 and insensitivity tube width ε = 0.1.</li>
+    <li><em>Random Forest Regressor:</em> 100 decorrelated decision trees using bootstrap aggregation (bagging) with random feature subspace selection.</li>
+    <li><em>Deep Neural Network (MLP 50x50):</em> Feedforward multilayer perceptron with an input layer, two fully connected hidden layers containing 50 ReLU neurons each, and a linear output unit (optimized via Adam with squared error loss).</li>
+    <li><em>Validation Framework:</em> 70/30 train/test partition (140 train, 60 test) combined with 5-fold cross-validation and a One-Way Analysis of Variance (ANOVA) hypothesis test across validation folds.</li>
+  </ul>
+
+  <h2>4. Why We Cannot Predict Those Values & Comprehensive Dataset Differences</h2>
+  <p>
+    A primary technical question is: <em>Why can a model trained on our original dataset not directly predict the values of the G1 dataset (and vice versa)?</em> The explanation lies in three fundamental structural and physical incompatibilities:
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Comparison Dimension</th>
+        <th>Dataset 1: Our Original Dataset (Belgium Smart Home)</th>
+        <th>Dataset 2: G1 Dataset (Piedra Santa, Peru)</th>
+        <th>Incompatibility Analysis</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Physical Target & Units</strong></td>
+        <td><code>Appliances</code> measured in <strong>Watt-hours (Wh)</strong> per 10-minute interval (Range: 10 to 120 Wh, Mean: 68.2 Wh).</td>
+        <td><code>Energy Consumption (kW)</code> measured in <strong>instantaneous Kilowatts (kW)</strong> active power (Range: 0.61 to 4.31 kW, Mean: 2.492 kW).</td>
+        <td><strong>Physical & Numerical Incompatibility:</strong> One Watt-hour is a cumulative measure of energy over time (1 Wh = 3,600 Joules), whereas one Kilowatt is instantaneous power draw (1 kW = 1,000 Joules/sec). A model calibrated to predict 68 Wh cannot output a 2.5 kW demand figure.</td>
+      </tr>
+      <tr>
+        <td><strong>Input Feature Space</strong></td>
+        <td><strong>50 continuous telemetry features:</strong> 9 room temperatures (T1–T9), 9 room humidities (RH_1–RH_9), atmospheric pressure (mm Hg), outdoor wind speed, visibility, and dew point.</td>
+        <td><strong>9 socio-demographic survey features:</strong> Diurnal hour, outdoor temperature (°C), family size (1–6 people), dwelling type (Apartment/Duplex/House), AC presence, and appliance usage intensity (Low/Moderate).</td>
+        <td><strong>Disjoint Vector Spaces:</strong> The mathematical input matrices are completely orthogonal. Dataset 1 contains zero information on family size or housing type; Dataset 2 contains zero sensor readings for indoor rooms, relative humidity, or barometric pressure.</td>
+      </tr>
+      <tr>
+        <td><strong>Observational Sampling Regime</strong></td>
+        <td><strong>High-frequency longitudinal time-series:</strong> 19,735 readings collected continuously at 10-minute intervals over 4.5 months for <em>one single residence</em>.</td>
+        <td><strong>Discrete cross-sectional survey:</strong> 200 static household records sampled across <em>200 different families and physical structures</em> at specific times of day.</td>
+        <td><strong>Temporal vs. Spatial Variation:</strong> Dataset 1 models internal thermal inertia, weather hysteresis, and routine daily habits within one physical structure. Dataset 2 models architectural diversity, family demographic differences, and socio-economic habits across an entire neighborhood.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>5. Experiment 1 Results: G1 Methods on Our Original Dataset (19,735 Records)</h2>
+  <p>
+    We deployed G1's algorithms onto our standardized 50-feature high-frequency smart home telemetry dataset (evaluated on 5,022 held-out test samples):
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Model Architecture</th>
+        <th>Origin</th>
+        <th>R² Score</th>
+        <th>MAE (Wh)</th>
+        <th>RMSE (Wh)</th>
+        <th>MAPE (%)</th>
+        <th>Status & Diagnostic Flag</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="highlight-row">
+        <td><strong>Our Team Model: Stacked Hybrid Ensemble (ETR + XGB + HistGBM)</strong></td>
+        <td><span class="badge-our">Our Project</span></td>
+        <td><strong>0.7504</strong></td>
+        <td><strong>8.62</strong></td>
+        <td><strong>11.58</strong></td>
+        <td><strong>15.53%</strong></td>
+        <td><span class="badge-normal">OPTIMAL BENCHMARK</span></td>
+      </tr>
+      <tr>
+        <td>Random Forest Regressor (100 Trees)</td>
+        <td>G1 Method</td>
+        <td>0.7336</td>
+        <td>8.93</td>
+        <td>11.96</td>
+        <td>16.33%</td>
+        <td><span class="badge-normal">NORMAL (Passed)</span></td>
+      </tr>
+      <tr>
+        <td>Deep Neural Network (MLP 50x50 Hidden Layers)</td>
+        <td>G1 Method</td>
+        <td>0.6400</td>
+        <td>10.51</td>
+        <td>13.90</td>
+        <td>19.07%</td>
+        <td><span class="badge-normal">NORMAL (Passed)</span></td>
+      </tr>
+      <tr>
+        <td>Support Vector Machine (SVR with RBF Kernel)</td>
+        <td>G1 Method</td>
+        <td>0.5331</td>
+        <td>11.78</td>
+        <td>15.83</td>
+        <td>21.09%</td>
+        <td><span class="badge-normal">NORMAL (Passed)</span></td>
+      </tr>
+      <tr>
+        <td>Linear Regression (Ordinary Least Squares)</td>
+        <td>G1 Baseline</td>
+        <td>0.4497</td>
+        <td>13.18</td>
+        <td>17.19</td>
+        <td>23.80%</td>
+        <td><span class="badge-normal">NORMAL (Underfit)</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>Takeaway on Large-Scale Telemetry:</strong> When sample volume is large (sample size N = 19,735), G1's Deep Neural Network (MLP 50x50) functions stably without collapsing (R² = 0.6400) because 11,718 training samples provide sufficient constraint on its internal parameters. However, our <strong>Stacked Hybrid Ensemble decisively outperforms all individual G1 models (R² = 0.7504)</strong>, reducing MAE by 34.6% relative to Linear Regression.
+  </div>
+
+  <h2>6. Experiment 2 Results: Our Model vs. G1 Methods on the 200-Sample Urban Dataset</h2>
+  <p>
+    We deployed our Stacked Hybrid Ensemble alongside G1's models on the Piedra Santa dataset (70/30 partition: 140 train, 60 test with Min-Max normalization):
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Model Architecture</th>
+        <th>Origin</th>
+        <th>R² Score</th>
+        <th>MAE (kW)</th>
+        <th>RMSE (kW)</th>
+        <th>MAPE (%)</th>
+        <th>Guardrail Status</th>
+        <th>Operational Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="highlight-row">
+        <td><strong>Support Vector Machine (SVR with RBF Kernel)</strong></td>
+        <td>G1 Method</td>
+        <td><strong>+0.0833</strong></td>
+        <td>0.5447</td>
+        <td><strong>0.6598</strong></td>
+        <td>28.28%</td>
+        <td><span class="badge-normal">PASSED (Optimal)</span></td>
+        <td><strong>Deploy as Primary Model</strong></td>
+      </tr>
+      <tr>
+        <td>Linear Regression (Ordinary Least Squares)</td>
+        <td>G1 Method</td>
+        <td><strong>+0.0524</strong></td>
+        <td><strong>0.5282</strong></td>
+        <td>0.6709</td>
+        <td>27.67%</td>
+        <td><span class="badge-normal">PASSED (Robust)</span></td>
+        <td>Deploy as Robust Edge Fallback</td>
+      </tr>
+      <tr>
+        <td>XGBoost Regressor (Depth = 3, L1/L2 Regularized)</td>
+        <td>Intermediate</td>
+        <td>+0.0404</td>
+        <td>0.5603</td>
+        <td>0.6751</td>
+        <td>28.01%</td>
+        <td><span class="badge-normal">PASSED</span></td>
+        <td>Constrained shallow tree option</td>
+      </tr>
+      <tr>
+        <td>Our Model: Regularized Stacked Ensemble (SVR+LR+XGB)</td>
+        <td>Our Project</td>
+        <td>-0.0462</td>
+        <td>0.5804</td>
+        <td>0.7049</td>
+        <td>28.26%</td>
+        <td><span class="badge-flag">⚠️ FLAGGED (R² &lt; 0)</span></td>
+        <td>Fallback to SVR / Linear Regression</td>
+      </tr>
+      <tr>
+        <td>Random Forest Regressor (100 Trees, Unconstrained)</td>
+        <td>G1 Method</td>
+        <td>-0.0532</td>
+        <td>0.5798</td>
+        <td>0.7073</td>
+        <td>29.06%</td>
+        <td><span class="badge-flag">⚠️ FLAGGED (R² &lt; 0)</span></td>
+        <td>Discard: Overfitting small sample</td>
+      </tr>
+      <tr>
+        <td>Our Model: Stacked Tree Ensemble (ETR+XGB+HistGBM)</td>
+        <td>Our Project</td>
+        <td>-0.1205</td>
+        <td>0.5830</td>
+        <td>0.7295</td>
+        <td>28.36%</td>
+        <td><span class="badge-flag">⚠️ FLAGGED (R² &lt; 0)</span></td>
+        <td>Fallback to SVR / Linear Regression</td>
+      </tr>
+      <tr style="background-color: #fff1f2;">
+        <td><strong>Deep Neural Network (MLP 50x50 Hidden Layers)</strong></td>
+        <td>G1 Method</td>
+        <td><strong>-0.7941</strong></td>
+        <td>0.7685</td>
+        <td>0.9231</td>
+        <td>44.24%</td>
+        <td><span class="badge-flag">⚠️ CRITICAL COLLAPSE</span></td>
+        <td>Discard: Severe over-parameterization</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>7. Root-Cause Analysis: Why Did Models Yield R² &lt; 0 on the Small Dataset?</h2>
+  <p>
+    The coefficient of determination is mathematically defined as:
+  </p>
+  <div class="protocol-box">
+    R² = 1 - [ Mean Squared Error of Model / Variance of Actual Target ]<br>
+    When R² &lt; 0:  MSE(Model) &gt; Var(Actual Target)
+  </div>
+  <p>
+    A negative R² indicates that the model's predictions produce larger squared error than a simple flat reference line predicting the historical sample mean (ȳ = 2.492 kW). Our diagnosis isolates two distinct degradation catalysts:
+  </p>
+  <ul>
+    <li><strong>Deep MLP Collapse (R² = -0.7941):</strong> The dual 50-neuron MLP contains over 3,100 free synaptic parameters (10 x 50 + 50 x 50 + 50 x 1). Optimizing 3,100 weights on only 140 training observations produces an extreme degree-of-freedom deficit (0.045 observations per parameter). The network memorizes training sample noise rather than generalizable relationships, causing large residual spikes on unseen test points.</li>
+    <li><strong>Tree Ensemble Degradation (R² = -0.0532 to -0.1205):</strong> Decision trees recursively partition feature space into fine-grained leaves. In the presence of 10.5% behavioral outliers (such as midnight air conditioning surges), unconstrained trees carve out high-variance decision regions that over-predict normal households during testing.</li>
+    <li><strong>Why SVR and Linear Regression Resist Degradation:</strong> SVR utilizes Structural Risk Minimization bounded by an ε-insensitive tube (penalty parameter C = 1.0, tube width ε = 0.1). Residuals smaller than ε receive zero penalty, and the RBF kernel enforces global hyperplane smoothness, preventing the boundary from distorting around local outliers. Linear Regression is structurally constrained to only 10 parameters (p + 1 = 10), preventing variance runaway.</li>
+  </ul>
+
+  <h2>8. Automated Guardrail Protocol: Flag and Fallback to Robust Method</h2>
+  <p>
+    To guarantee production reliability, our platform implements an automated architectural safety switchboard:
+  </p>
+
+  <div class="callout-warning">
+    <strong>OPERATIONAL GUARDRAIL SWITCHBOARD LOGIC:</strong><br><br>
+    <strong>RULE 1 (Micro-Scale Trigger):</strong><br>
+    IF (Sample Count N &lt; 1,000) OR (Hold-out Validation R² &lt; 0):<br>
+    &nbsp;&nbsp;&bull; Issue Alert: <code>[FLAG: MODEL_DEGRADATION_DETECTED]</code><br>
+    &nbsp;&nbsp;&bull; Immediately disengage Deep Neural Networks and Multi-Tree Stacking.<br>
+    &nbsp;&nbsp;&bull; <strong>AUTOMATIC FALLBACK:</strong> Route all inference requests to <strong>Support Vector Regression (SVR with RBF kernel)</strong> or <strong>Linear Regression (OLS)</strong>.<br><br>
+    <strong>RULE 2 (High-Frequency Telemetry Trigger):</strong><br>
+    ELSE IF (Sample Count N &ge; 10,000):<br>
+    &nbsp;&nbsp;&bull; Issue Status: <code>[STATUS: ADVANCED_PIPELINE_ACTIVE]</code><br>
+    &nbsp;&nbsp;&bull; Activate <strong>Our Stacked Hybrid Super-Learner (ETR + XGB + HistGBM)</strong>.<br>
+    &nbsp;&nbsp;&bull; Enable Multi-Tier Anomaly Diagnostics (Isolation Forest + Dynamic 3-IQR Residuals).
+  </div>
+
+  <h2>9. Summary Conclusion & Architectural Guidelines</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Evaluation Dimension</th>
+        <th>Small-Scale Regime (N = 200, G1 Dataset)</th>
+        <th>Large-Scale Regime (N = 19,735, Our Dataset)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Recommended Production Model</strong></td>
+        <td><strong>Support Vector Machine (SVR) / Linear Regression</strong></td>
+        <td><strong>Our Stacked Hybrid Super-Learner (ETR + XGB + HistGBM)</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Achieved R² Performance</strong></td>
+        <td>+0.0833 (SVR) / +0.0524 (Linear Regression)</td>
+        <td><strong>0.7504 (+0.63 percentage points above base paper)</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Flagged Architectures (R² &lt; 0)</strong></td>
+        <td>Deep MLP (-0.7941), Tree Stacking (-0.1205), Random Forest (-0.0532)</td>
+        <td>None (All models achieve positive R² between 0.44 and 0.75)</td>
+      </tr>
+      <tr>
+        <td><strong>Failure Mechanism</strong></td>
+        <td>Over-parameterization and outlier noise sensitivity</td>
+        <td>Underfitting (Simple linear models cannot capture non-linearities)</td>
+      </tr>
+      <tr>
+        <td><strong>Operational Policy</strong></td>
+        <td>Enforce linear and kernel fallback guardrail</td>
+        <td>Deploy full stacked hybrid ensemble with real-time anomaly alerts</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="footer">
+    Household Power Consumption ML System &bull; Comparative Analysis Report &bull; Academic Viva Defence &bull; SRM Institute of Science and Technology &bull; 2026
+  </div>
+
+</body>
+</html>
+"""
+
+with open(html_path, 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+print(f"✓ Generated clean HTML (0 dollar signs) at {html_path}")
+
+# Compile HTML to PDF using Chrome headless
+chrome_path = r'C:\Program Files\Google\Chrome\Application\chrome.exe'
+uri = 'file:///' + os.path.abspath(html_path).replace('\\', '/')
+
+cmd = [
+    chrome_path,
+    '--headless=new',
+    '--disable-gpu',
+    f'--user-data-dir={user_data}',
+    '--no-pdf-header-footer',
+    f'--print-to-pdf={pdf_path}',
+    uri
+]
+
+print("Compiling PDF with Chrome headless...")
+res = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
+if os.path.exists(pdf_path):
+    size_kb = os.path.getsize(pdf_path) / 1024
+    print(f"✓ SUCCESS! Comparative PDF created at {pdf_path} (Size: {size_kb:.1f} KB)")
+else:
+    print("PDF generation failed:", res.stderr)

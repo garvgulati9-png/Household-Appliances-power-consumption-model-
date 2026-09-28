@@ -1,0 +1,18 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+frontend/__pycache__/
+
+# Temporary profiles / browser artifacts
+chrome_temp_profile/
+*.tmp
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# IDE / Editor
+.vscode/
+.idea/

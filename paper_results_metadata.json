@@ -1,0 +1,124 @@
+{
+    "paper_title": "Evaluation of the Impact of Machine Learning on the Prediction of Residential Energy Consumption",
+    "authors": [
+        "Garv Gulati",
+        "Umang Gupta",
+        "Nikhil Goyal"
+    ],
+    "dataset": {
+        "name": "Piedra Santa Neighborhood Stage 1, Arequipa, Peru",
+        "records": 200,
+        "features": 9,
+        "target": "Energy Consumption (kW)",
+        "train_size": 140,
+        "test_size": 60
+    },
+    "model_benchmark_table": {
+        "Linear Regression": {
+            "MAE": 0.528165,
+            "RMSE": 0.670853,
+            "R2_Test": 0.052433,
+            "R2_CV": 0.2545
+        },
+        "Support Vector Machine": {
+            "MAE": 0.544686,
+            "RMSE": 0.659847,
+            "R2_Test": 0.083271,
+            "R2_CV": 0.1933
+        },
+        "Random Forest": {
+            "MAE": 0.579787,
+            "RMSE": 0.707263,
+            "R2_Test": -0.053214,
+            "R2_CV": 0.1699
+        },
+        "Deep Neural Network": {
+            "MAE": 0.768462,
+            "RMSE": 0.923099,
+            "R2_Test": -0.794121,
+            "R2_CV": -0.3827
+        },
+        "XGBoost": {
+            "MAE": 0.560286,
+            "RMSE": 0.675102,
+            "R2_Test": 0.040393,
+            "R2_CV": 0.1872
+        },
+        "Extra Trees": {
+            "MAE": 0.559054,
+            "RMSE": 0.689698,
+            "R2_Test": -0.001551,
+            "R2_CV": 0.1632
+        },
+        "Team Ensemble": {
+            "MAE": 0.580355,
+            "RMSE": 0.704913,
+            "R2_Test": -0.046227,
+            "R2_CV": 0.1516
+        }
+    },
+    "anova_table": {
+        "Between groups (models)": {
+            "SS": 0.1166,
+            "df": 4,
+            "MS": 0.0292,
+            "F": 6.253,
+            "p_value": 0.002
+        },
+        "Within groups": {
+            "SS": 0.0933,
+            "df": 20,
+            "MS": 0.0047,
+            "F": null,
+            "p_value": null
+        },
+        "Total": {
+            "SS": 0.2099,
+            "df": 24,
+            "MS": null,
+            "F": null,
+            "p_value": null
+        }
+    },
+    "projections_2026_2030": [
+        {
+            "Year": 2026,
+            "Prediction_RF": 3.1,
+            "Prediction_SVM": 2.95,
+            "Prediction_LR": 3.0,
+            "Prediction_Ensemble": 2.98
+        },
+        {
+            "Year": 2027,
+            "Prediction_RF": 3.15,
+            "Prediction_SVM": 3.0,
+            "Prediction_LR": 3.02,
+            "Prediction_Ensemble": 3.01
+        },
+        {
+            "Year": 2028,
+            "Prediction_RF": 3.2,
+            "Prediction_SVM": 3.05,
+            "Prediction_LR": 3.04,
+            "Prediction_Ensemble": 3.04
+        },
+        {
+            "Year": 2029,
+            "Prediction_RF": 3.25,
+            "Prediction_SVM": 3.1,
+            "Prediction_LR": 3.06,
+            "Prediction_Ensemble": 3.08
+        },
+        {
+            "Year": 2030,
+            "Prediction_RF": 3.3,
+            "Prediction_SVM": 3.15,
+            "Prediction_LR": 3.08,
+            "Prediction_Ensemble": 3.12
+        }
+    ],
+    "anomalies": {
+        "count": 21,
+        "rate_pct": 10.5
+    }
+}

@@ -1,0 +1,117 @@
+{
+    "timestamp": "2026-09-21 09:44:36",
+    "experiment_1_original_dataset": {
+        "dataset_name": "UCI Appliances Energy Telemetry",
+        "records": 16740,
+        "features": 50,
+        "target": "Appliances (Wh)",
+        "results": {
+            "Linear Regression (G1 Method)": {
+                "R2": 0.4497,
+                "MAE": 13.18,
+                "RMSE": 17.19,
+                "MAPE": 23.8,
+                "Flag": "NORMAL"
+            },
+            "Random Forest (G1 Method)": {
+                "R2": 0.7336,
+                "MAE": 8.93,
+                "RMSE": 11.96,
+                "MAPE": 16.33,
+                "Flag": "NORMAL"
+            },
+            "Deep Neural Network MLP 50x50 (G1 Method)": {
+                "R2": 0.64,
+                "MAE": 10.51,
+                "RMSE": 13.9,
+                "MAPE": 19.07,
+                "Flag": "NORMAL"
+            },
+            "Support Vector Machine SVR (G1 Method)": {
+                "R2": 0.5331,
+                "MAE": 11.78,
+                "RMSE": 15.83,
+                "MAPE": 21.09,
+                "Flag": "NORMAL"
+            },
+            "Our Model: Stacked Hybrid Ensemble (ETR + XGB + HistGBM)": {
+                "R2": 0.6678,
+                "MAE": 10.16,
+                "RMSE": 13.36,
+                "MAPE": 20.08,
+                "Flag": "NORMAL"
+            }
+        }
+    },
+    "experiment_2_small_dataset": {
+        "dataset_name": "Piedra Santa Urban Micro-Cohort (G1 Dataset)",
+        "records": 200,
+        "features": 9,
+        "target": "Energy Consumption (kW)",
+        "results": {
+            "Support Vector Machine SVR (G1 Method)": {
+                "R2": 0.0833,
+                "MAE": 0.5447,
+                "RMSE": 0.6598,
+                "MAPE": 28.28,
+                "Origin": "G1",
+                "Flag": "NORMAL (Passed)",
+                "Recommendation": "Safe for deployment in low-sample regime."
+            },
+            "Linear Regression OLS (G1 Method)": {
+                "R2": 0.0524,
+                "MAE": 0.5282,
+                "RMSE": 0.6709,
+                "MAPE": 27.67,
+                "Origin": "G1",
+                "Flag": "NORMAL (Passed)",
+                "Recommendation": "Safe for deployment in low-sample regime."
+            },
+            "Random Forest Regressor (G1 Method)": {
+                "R2": -0.0532,
+                "MAE": 0.5798,
+                "RMSE": 0.7073,
+                "MAPE": 29.06,
+                "Origin": "G1",
+                "Flag": "\u26a0\ufe0f FLAGGED (R\u00b2 < 0)",
+                "Recommendation": "Discard for micro-sample deployment; fallback to regularized/linear model."
+            },
+            "Deep Neural Network MLP (G1 Method)": {
+                "R2": -0.7941,
+                "MAE": 0.7685,
+                "RMSE": 0.9231,
+                "MAPE": 44.24,
+                "Origin": "G1",
+                "Flag": "\u26a0\ufe0f FLAGGED (R\u00b2 < 0)",
+                "Recommendation": "Discard for micro-sample deployment; fallback to regularized/linear model."
+            },
+            "XGBoost Regressor": {
+                "R2": 0.0404,
+                "MAE": 0.5603,
+                "RMSE": 0.6751,
+                "MAPE": 28.01,
+                "Origin": "Intermediate",
+                "Flag": "NORMAL (Passed)",
+                "Recommendation": "Safe for deployment in low-sample regime."
+            },
+            "Our Model: Stacked Tree Ensemble (ETR + XGB + HistGBM)": {
+                "R2": -0.1205,
+                "MAE": 0.583,
+                "RMSE": 0.7295,
+                "MAPE": 28.36,
+                "Origin": "OurModel",
+                "Flag": "\u26a0\ufe0f FLAGGED (R\u00b2 < 0)",
+                "Recommendation": "Discard for micro-sample deployment; fallback to regularized/linear model."
+            },
+            "Our Model: Regularized Stacked Ensemble (SVR + LR + XGB)": {
+                "R2": -0.0462,
+                "MAE": 0.5804,
+                "RMSE": 0.7049,
+                "MAPE": 28.26,
+                "Origin": "OurModel",
+                "Flag": "\u26a0\ufe0f FLAGGED (R\u00b2 < 0)",
+                "Recommendation": "Discard for micro-sample deployment; fallback to regularized/linear model."
+            }
+        }
+    }
+}
