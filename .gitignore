@@ -16,3 +16,6 @@ ehthumbs.db
 # IDE / Editor
 .vscode/
 .idea/
+
+# Office temporary files
+~$*

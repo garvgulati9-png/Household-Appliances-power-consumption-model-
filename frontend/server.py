@@ -316,6 +316,13 @@ def download_final_project_paper_pdf():
         return send_file(pdf_path, as_attachment=True, download_name='Household_Power_Consumption_Final_Research_Paper.pdf')
     return jsonify({'error': 'PDF not found'}), 404
 
+@app.route('/api/download/final_project_paper_docx', methods=['GET'])
+def download_final_project_paper_docx():
+    docx_path = 'c:/Machine learning/Household_Power_Consumption_Final_Research_Paper.docx'
+    if os.path.exists(docx_path):
+        return send_file(docx_path, as_attachment=True, download_name='Household_Power_Consumption_Final_Research_Paper.docx')
+    return jsonify({'error': 'DOCX not found'}), 404
+
 @app.route('/api/download/comparative_pdf', methods=['GET'])
 def download_comparative_pdf():
     pdf_path = 'c:/Machine learning/G1_vs_OurModel_Comparative_Report.pdf'

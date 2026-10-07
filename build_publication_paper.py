@@ -1,57 +1,75 @@
-<!DOCTYPE html>
+import subprocess
+import os
+import tempfile
+
+output_html = r"c:\Machine learning\Household_Power_Consumption_Final_Research_Paper.html"
+output_pdf = r"c:\Machine learning\Household_Power_Consumption_Final_Research_Paper.pdf"
+
+# Resolve absolute file URIs for embedded figures
+p_flowchart = "file:///" + os.path.abspath(r"c:\Machine learning\plots\study_flowchart.png").replace("\\", "/")
+p_actual = "file:///" + os.path.abspath(r"c:\Machine learning\plots\actual_vs_predicted.png").replace("\\", "/")
+p_residual = "file:///" + os.path.abspath(r"c:\Machine learning\plots\residual_analysis.png").replace("\\", "/")
+p_feat = "file:///" + os.path.abspath(r"c:\Machine learning\plots\feature_importance.png").replace("\\", "/")
+p_scatter = "file:///" + os.path.abspath(r"c:\Machine learning\plots\anomaly_scatter.png").replace("\\", "/")
+p_hourly = "file:///" + os.path.abspath(r"c:\Machine learning\plots\hourly_anomaly_distribution.png").replace("\\", "/")
+p_comp = "file:///" + os.path.abspath(r"c:\Machine learning\plots\model_comparison_bar.png").replace("\\", "/")
+p_shap = "file:///" + os.path.abspath(r"c:\Machine learning\plots\shap_summary.png").replace("\\", "/")
+p_web = "file:///" + os.path.abspath(r"c:\Machine learning\plots\website_predictor_screenshot.png").replace("\\", "/")
+
+html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Stacked Ensemble Learning for Residential Appliance Energy Prediction and Anomaly Screening</title>
   <style>
-    @page {
+    @page {{
       size: A4;
       margin: 20mm 18mm 20mm 18mm;
-      @bottom-right {
+      @bottom-right {{
         content: counter(page);
         font-family: 'Times New Roman', Times, serif;
         font-size: 9pt;
-      }
-    }
-    body {
+      }}
+    }}
+    body {{
       font-family: 'Times New Roman', Times, 'Nimbus Roman No9 L', serif;
       font-size: 10pt;
       line-height: 1.45;
       color: #111827;
       margin: 0;
       padding: 0;
-    }
-    .paper-header {
+    }}
+    .paper-header {{
       text-align: center;
       margin-bottom: 18px;
       padding-bottom: 12px;
       border-bottom: 1.5pt solid #111827;
-    }
-    h1.paper-title {
+    }}
+    h1.paper-title {{
       font-size: 16pt;
       font-weight: bold;
       color: #000000;
       line-height: 1.3;
       margin: 0 0 10px 0;
-    }
-    .authors-list {
+    }}
+    .authors-list {{
       font-size: 10.5pt;
       font-weight: bold;
       color: #111827;
       margin-bottom: 4px;
-    }
-    .authors-affil {
+    }}
+    .authors-affil {{
       font-size: 9pt;
       color: #374151;
       line-height: 1.35;
       margin-bottom: 4px;
-    }
-    .authors-email {
+    }}
+    .authors-email {{
       font-size: 8.5pt;
       color: #111827;
       font-family: 'Courier New', Courier, monospace;
-    }
-    .abstract-box {
+    }}
+    .abstract-box {{
       margin: 14px 0 16px 0;
       text-align: justify;
       font-size: 9.2pt;
@@ -59,21 +77,21 @@
       border-top: 1pt solid #111827;
       border-bottom: 1pt solid #111827;
       padding: 10px 0;
-    }
-    .abstract-title {
+    }}
+    .abstract-title {{
       font-weight: bold;
       font-size: 9.5pt;
       color: #000000;
       display: inline;
-    }
-    .keywords {
+    }}
+    .keywords {{
       margin-top: 6px;
       font-size: 8.8pt;
-    }
-    .keywords strong {
+    }}
+    .keywords strong {{
       color: #000000;
-    }
-    h2 {
+    }}
+    h2 {{
       font-size: 11pt;
       color: #000000;
       text-transform: uppercase;
@@ -81,42 +99,42 @@
       margin-top: 16px;
       margin-bottom: 6px;
       font-weight: bold;
-    }
-    h3 {
+    }}
+    h3 {{
       font-size: 10pt;
       color: #111827;
       font-weight: bold;
       margin-top: 10px;
       margin-bottom: 4px;
-    }
-    p {
+    }}
+    p {{
       text-align: justify;
       margin: 0 0 6px 0;
       text-indent: 1.5em;
-    }
-    p.no-indent {
+    }}
+    p.no-indent {{
       text-indent: 0;
-    }
-    ul, ol {
+    }}
+    ul, ol {{
       margin: 4px 0 8px 0;
       padding-left: 2em;
       font-size: 9.5pt;
-    }
-    li {
+    }}
+    li {{
       margin-bottom: 3px;
       text-align: justify;
-    }
+    }}
 
     /* Standard Three-Line Booktabs Table Styling (No vertical borders, clean academic look) */
-    .table-caption {
+    .table-caption {{
       font-size: 9pt;
       text-align: left;
       margin-top: 12px;
       margin-bottom: 4px;
       color: #111827;
       page-break-after: avoid;
-    }
-    table {
+    }}
+    table {{
       width: 100%;
       border-collapse: collapse;
       margin: 4px 0 14px 0;
@@ -124,8 +142,8 @@
       page-break-inside: avoid;
       border-top: 1.5pt solid #111827;
       border-bottom: 1.5pt solid #111827;
-    }
-    th {
+    }}
+    th {{
       border-top: none;
       border-left: none;
       border-right: none;
@@ -135,47 +153,47 @@
       color: #000000;
       background-color: transparent;
       text-align: left;
-    }
-    td {
+    }}
+    td {{
       border: none;
       border-bottom: 0.5pt solid #e5e7eb;
       padding: 4px 6px;
       color: #1f2937;
-    }
-    tr:last-child td {
+    }}
+    tr:last-child td {{
       border-bottom: none;
-    }
-    tr.highlight-row {
+    }}
+    tr.highlight-row {{
       font-weight: bold;
       background-color: #f9fafb;
-    }
-    td.center {
+    }}
+    td.center {{
       text-align: center;
-    }
-    td.number {
+    }}
+    td.number {{
       text-align: right;
       font-family: 'Consolas', monospace;
-    }
+    }}
 
     /* Real Paper Figure Styling: No image border, caption on TOP, short heading */
-    .figure-container {
+    .figure-container {{
       text-align: center;
       margin: 14px auto 16px auto;
       page-break-inside: avoid;
-    }
-    .fig-caption {
+    }}
+    .fig-caption {{
       font-size: 9pt;
       text-align: left;
       margin-bottom: 6px;
       color: #111827;
       font-weight: normal;
       page-break-after: avoid;
-    }
-    .fig-caption strong {
+    }}
+    .fig-caption strong {{
       font-weight: bold;
       color: #000000;
-    }
-    .figure-container img {
+    }}
+    .figure-container img {{
       max-width: 86%;
       height: auto;
       border: none !important;
@@ -184,65 +202,65 @@
       display: block;
       margin: 4px auto 0 auto;
       background: transparent;
-    }
+    }}
 
     /* Normally typed human equations (Zero AI colored boxes or bars) */
-    .equation-line {
+    .equation-line {{
       margin: 8px 0;
       padding: 0 10px;
       text-align: center;
       font-family: 'Times New Roman', Times, serif;
       font-size: 10pt;
       line-height: 1.3;
-    }
-    .equation-line .eq-math {
+    }}
+    .equation-line .eq-math {{
       display: inline-block;
       font-style: italic;
-    }
-    .equation-line .eq-num {
+    }}
+    .equation-line .eq-num {{
       float: right;
       font-style: normal;
       font-weight: normal;
       color: #111827;
-    }
-    .fraction {
+    }}
+    .fraction {{
       display: inline-block;
       vertical-align: middle;
       text-align: center;
       padding: 0 2px;
       font-style: italic;
-    }
-    .fraction > span {
+    }}
+    .fraction > span {{
       display: block;
-    }
-    .fraction span.numerator {
+    }}
+    .fraction span.numerator {{
       border-bottom: 0.75pt solid #000000;
       padding-bottom: 1px;
-    }
-    .fraction span.denominator {
+    }}
+    .fraction span.denominator {{
       padding-top: 1px;
-    }
+    }}
 
-    .badge-win {
+    .badge-win {{
       font-weight: bold;
       color: #047857;
-    }
-    .badge-baseline {
+    }}
+    .badge-baseline {{
       color: #4b5563;
-    }
-    .references {
+    }}
+    .references {{
       font-size: 8.2pt;
       line-height: 1.35;
       padding-left: 1.5em;
-    }
-    .references li {
+    }}
+    .references li {{
       margin-bottom: 4px;
       text-align: justify;
-    }
-    a {
+    }}
+    a {{
       color: #1d4ed8;
       text-decoration: underline;
-    }
+    }}
   </style>
 </head>
 <body>
@@ -396,7 +414,7 @@
   <!-- FLOWCHART FIGURE (Caption on top, no image border) -->
   <div class="figure-container">
     <div class="fig-caption"><strong>Fig. 1.</strong> Overall research framework.</div>
-    <img src="file:///c:/Machine learning/plots/study_flowchart.png" alt="Overall research framework">
+    <img src="{p_flowchart}" alt="Overall research framework">
   </div>
 
   <!-- SECTION 3 -->
@@ -665,7 +683,7 @@
 
   <div class="figure-container">
     <div class="fig-caption"><strong>Fig. 2.</strong> Data partitioning and validation protocol.</div>
-    <img src="file:///c:/Machine learning/plots/study_flowchart.png" alt="Validation protocol">
+    <img src="{p_flowchart}" alt="Validation protocol">
   </div>
 
   <h3>4.5. Performance Evaluation Metrics</h3>
@@ -837,12 +855,12 @@
 
   <div class="figure-container">
     <div class="fig-caption"><strong>Fig. 8.</strong> Model performance benchmark comparison.</div>
-    <img src="file:///c:/Machine learning/plots/model_comparison_bar.png" alt="Model comparison bar chart">
+    <img src="{p_comp}" alt="Model comparison bar chart">
   </div>
 
   <div class="figure-container">
     <div class="fig-caption"><strong>Fig. 3.</strong> Actual vs. predicted appliance energy.</div>
-    <img src="file:///c:/Machine learning/plots/actual_vs_predicted.png" alt="Actual vs predicted appliance energy">
+    <img src="{p_actual}" alt="Actual vs predicted appliance energy">
   </div>
   <p>
     Fig. 3 shows prediction dispersion around the identity line. Predictions cluster tightly along the diagonal across the 20–100 Wh band, with mild under-prediction observed above 110 Wh due to boundary effects of nominal filtering.
@@ -851,7 +869,7 @@
   <h3>5.2. Residual Structure and Prediction-Error Characteristics</h3>
   <div class="figure-container">
     <div class="fig-caption"><strong>Fig. 4.</strong> Prediction residual distribution.</div>
-    <img src="file:///c:/Machine learning/plots/residual_analysis.png" alt="Prediction residual distribution">
+    <img src="{p_residual}" alt="Prediction residual distribution">
   </div>
   <p>
     Fig. 4 summarizes the signed residuals. The distribution is centered near zero (mean error = &minus;0.04 Wh), with tails extending in both directions bounded by displayed screening cutoffs at &minus;46.6 and +46.7 Wh.
@@ -863,11 +881,11 @@
   </p>
   <div class="figure-container">
     <div class="fig-caption"><strong>Fig. 5.</strong> Top feature importance ranking.</div>
-    <img src="file:///c:/Machine learning/plots/feature_importance.png" alt="Feature importance ranking">
+    <img src="{p_feat}" alt="Feature importance ranking">
   </div>
   <div class="figure-container">
     <div class="fig-caption"><strong>Fig. 9.</strong> SHAP feature attributions.</div>
-    <img src="file:///c:/Machine learning/plots/shap_summary.png" alt="SHAP feature attributions">
+    <img src="{p_shap}" alt="SHAP feature attributions">
   </div>
   <p>
     Diurnal cyclical features (<em>Time_slot_sin</em>: 18.42 Wh mean |SHAP|, <em>Hour_sin</em>: 16.85 Wh, <em>is_evening_peak</em>: 14.20 Wh) account for the largest impact on predicted energy, followed by indoor temperature sensors (<em>T8</em> teenager room: 8.45 Wh, <em>T_indoor_max</em>: 5.80 Wh, <em>T_spread</em>: 5.20 Wh).
@@ -876,11 +894,11 @@
   <h3>5.4. Anomaly Screening and Temporal Distribution of Flagged Observations</h3>
   <div class="figure-container">
     <div class="fig-caption"><strong>Fig. 6.</strong> Anomaly screening scatter plot.</div>
-    <img src="file:///c:/Machine learning/plots/anomaly_scatter.png" alt="Anomaly screening scatter plot">
+    <img src="{p_scatter}" alt="Anomaly screening scatter plot">
   </div>
   <div class="figure-container">
     <div class="fig-caption"><strong>Fig. 7.</strong> Hourly distribution of flagged anomalies.</div>
-    <img src="file:///c:/Machine learning/plots/hourly_anomaly_distribution.png" alt="Hourly distribution of flagged anomalies">
+    <img src="{p_hourly}" alt="Hourly distribution of flagged anomalies">
   </div>
   <p>
     Fig. 6 highlights 24 flagged observations (0.48% flag rate). Fig. 7 shows the hourly distribution of flags: five occur at hour 6, five at hour 7, and four at hour 8. These hours account for 14 of the 24 flags (58.3%), capturing rapid morning kettle and water heating loads.
@@ -898,7 +916,7 @@
 
   <div class="figure-container">
     <div class="fig-caption"><strong>Fig. 10.</strong> Interactive prediction web dashboard.</div>
-    <img src="file:///c:/Machine learning/plots/website_predictor_screenshot.png" alt="Interactive prediction web dashboard">
+    <img src="{p_web}" alt="Interactive prediction web dashboard">
   </div>
 
   <p>
@@ -1059,3 +1077,32 @@
 
 </body>
 </html>
+"""
+
+with open(output_html, "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+print(f"[OK] Generated revised HTML at {output_html}")
+
+# Compile HTML to PDF using Chrome headless
+chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+user_data = os.path.join(tempfile.gettempdir(), "chrome_pdf_final_paper_tmp2")
+uri = "file:///" + os.path.abspath(output_html).replace("\\", "/")
+
+cmd = [
+    chrome_path,
+    "--headless=new",
+    "--disable-gpu",
+    f"--user-data-dir={user_data}",
+    "--no-pdf-header-footer",
+    f"--print-to-pdf={output_pdf}",
+    uri
+]
+
+print("Compiling PDF with Chrome headless...")
+res = subprocess.run(cmd, capture_output=True, text=True, timeout=40)
+if os.path.exists(output_pdf):
+    size_kb = os.path.getsize(output_pdf) / 1024
+    print(f"[OK] SUCCESS! Clean PDF created at {output_pdf} (Size: {size_kb:.1f} KB)")
+else:
+    print("PDF generation failed:", res.stderr)

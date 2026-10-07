@@ -1,4 +1,4 @@
-# Stacked Ensemble Learning for Residential Appliance Energy Prediction and Anomaly Screening
+md_content = """# Stacked Ensemble Learning for Residential Appliance Energy Prediction and Anomaly Screening
 
 **Rahul Gupta**, **Umang Gupta**, **Garv Gulati**, **Nikhil Goyal**  
 *Department of Computer Science and Engineering, SRM Institute of Science and Technology, Delhi NCR Campus*  
@@ -74,34 +74,34 @@ Most recently, a machine learning system for appliance energy prediction was pre
 ### 3.1. Extremely Randomized Trees (ExtraTrees)
 Extremely Randomized Trees (ExtraTrees) introduce extreme randomization into tree induction by selecting split thresholds completely at random for each candidate feature [20]. For an ensemble of *M* fitted randomized decision trees with individual predictions $f_m(x)$, the regression output is the arithmetic mean:
 
-$$\hat{y}_{\text{ET}}(x) = \frac{1}{M} \sum_{m=1}^{M} f_m(x) \tag{1}$$
+$$\\hat{y}_{\\text{ET}}(x) = \\frac{1}{M} \\sum_{m=1}^{M} f_m(x) \\tag{1}$$
 
 Our architecture configures *M* = 400 trees with mean squared error split criterion, maximum features set to square root, and minimum sample split of 2.
 
 ### 3.2. Extreme Gradient Boosting (XGBoost)
 Extreme Gradient Boosting (XGBoost) constructs an additive expansion of regression trees through second-order Taylor series optimization of a regularized objective function [23]:
 
-$$L^{(m)} = \sum_{i=1}^{n} \left[ g_i f_m(x_i) + \frac{1}{2} h_i f_m^2(x_i) \right] + \gamma T + \frac{1}{2} \lambda \sum_{j=1}^{T} w_j^2 + \alpha \sum_{j=1}^{T} |w_j| \tag{2}$$
+$$L^{(m)} = \\sum_{i=1}^{n} \\left[ g_i f_m(x_i) + \\frac{1}{2} h_i f_m^2(x_i) \\right] + \\gamma T + \\frac{1}{2} \\lambda \\sum_{j=1}^{T} w_j^2 + \\alpha \\sum_{j=1}^{T} |w_j| \\tag{2}$$
 
 The combined additive prediction is expressed as:
 
-$$\hat{y}_{\text{XGB}}(x) = f_0(x) + \eta \sum_{m=1}^{M} f_m(x) \tag{3}$$
+$$\\hat{y}_{\\text{XGB}}(x) = f_0(x) + \\eta \\sum_{m=1}^{M} f_m(x) \\tag{3}$$
 
-Our configuration utilizes 700 boosting rounds, learning rate $\eta = 0.03$, maximum tree depth of 8, subsample ratio of 0.85, $\alpha = 0.5$, and $\lambda = 1.0$.
+Our configuration utilizes 700 boosting rounds, learning rate $\\eta = 0.03$, maximum tree depth of 8, subsample ratio of 0.85, $\\alpha = 0.5$, and $\\lambda = 1.0$.
 
 ### 3.3. Histogram-Based Gradient Boosting (HistGradientBoosting)
-Histogram-Based Gradient Boosting bins continuous input features into discrete integer intervals (bins &le; 255), reducing split-evaluation time and mitigating sensor noise [24]. Our implementation specifies 500 maximum iterations, 255 bins, learning rate $\eta = 0.04$, and maximum depth of 9.
+Histogram-Based Gradient Boosting bins continuous input features into discrete integer intervals (bins &le; 255), reducing split-evaluation time and mitigating sensor noise [24]. Our implementation specifies 500 maximum iterations, 255 bins, learning rate $\\eta = 0.04$, and maximum depth of 9.
 
 ### 3.4. Non-Negative Ridge Meta-Stacking Formulation
 Stacked generalization combines out-of-fold base learner predictions through a meta-regressor [25, 26]. Let **Z** denote the level-1 feature matrix. We formulate a constrained Non-Negative Ridge meta-learner [27]:
 
-$$w^* = \arg\min_{w \ge 0} \left\{ \|y - Zw\|_2^2 + \alpha \|w\|_2^2 \right\}, \quad \alpha = 1.0 \tag{4}$$
+$$w^* = \\arg\\min_{w \\ge 0} \\left\\{ \\|y - Zw\\|_2^2 + \\alpha \\|w\\|_2^2 \\right\\}, \\quad \\alpha = 1.0 \\tag{4}$$
 
 The final stacked ensemble prediction is computed as:
 
-$$\hat{y}_{\text{Stack}} = w_{\text{ET}} \hat{y}_{\text{ET}} + w_{\text{XGB}} \hat{y}_{\text{XGB}} + w_{\text{HGB}} \hat{y}_{\text{HGB}} \tag{5}$$
+$$\\hat{y}_{\\text{Stack}} = w_{\\text{ET}} \\hat{y}_{\\text{ET}} + w_{\\text{XGB}} \\hat{y}_{\\text{XGB}} + w_{\\text{HGB}} \\hat{y}_{\\text{HGB}} \\tag{5}$$
 
-The empirically fitted non-negative weights are $w_{\text{ET}} = 0.481$, $w_{\text{XGB}} = 0.343$, and $w_{\text{HGB}} = 0.176$, summing to 1.0.
+The empirically fitted non-negative weights are $w_{\\text{ET}} = 0.481$, $w_{\\text{XGB}} = 0.343$, and $w_{\\text{HGB}} = 0.176$, summing to 1.0.
 
 ---
 
@@ -137,25 +137,25 @@ An operating band filter of 10 Wh &le; *Appliances* &le; 120 Wh was applied to f
 ### 4.3. 50-Dimensional Feature Engineering
 Trigonometric continuous cyclical encodings were constructed for periodic variables $u$ with period $P$:
 
-$$c_1(u) = \sin\left(\frac{2\pi u}{P}\right), \quad c_2(u) = \cos\left(\frac{2\pi u}{P}\right) \tag{6}$$
+$$c_1(u) = \\sin\\left(\\frac{2\\pi u}{P}\\right), \\quad c_2(u) = \\cos\\left(\\frac{2\\pi u}{P}\\right) \\tag{6}$$
 
 Thermodynamic gradients across internal and external building boundaries were computed:
 
-$$\bar{T}_{\text{indoor}} = \frac{1}{8} \sum_{i \in I} T_i, \quad T_{\text{spread}} = \max_{i \in I}(T_i) - \min_{i \in I}(T_i) \tag{7}$$
+$$\\bar{T}_{\\text{indoor}} = \\frac{1}{8} \\sum_{i \\in I} T_i, \\quad T_{\\text{spread}} = \\max_{i \\in I}(T_i) - \\min_{i \\in I}(T_i) \\tag{7}$$
 
-$$\Delta T_{\text{out}} = \bar{T}_{\text{indoor}} - T_{\text{out}}, \quad D_{\text{dew}} = T_{\text{out}} - T_{\text{dewpoint}}, \quad \Delta T_{\text{living}} = T_2 - T_{\text{out}} \tag{8}$$
+$$\\Delta T_{\\text{out}} = \\bar{T}_{\\text{indoor}} - T_{\\text{out}}, \\quad D_{\\text{dew}} = T_{\\text{out}} - T_{\\text{dewpoint}}, \\quad \\Delta T_{\\text{living}} = T_2 - T_{\\text{out}} \\tag{8}$$
 
 ### 4.4. Performance Evaluation Metrics
 Model predictive accuracy was benchmarked across four standardized statistical regression metrics:
 
-$$\text{MAE} = \frac{1}{n} \sum_{i=1}^{n} |y_i - \hat{y}_i|, \quad \text{RMSE} = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2} \tag{9}$$
+$$\\text{MAE} = \\frac{1}{n} \\sum_{i=1}^{n} |y_i - \\hat{y}_i|, \\quad \\text{RMSE} = \\sqrt{\\frac{1}{n} \\sum_{i=1}^{n} (y_i - \\hat{y}_i)^2} \\tag{9}$$
 
-$$R^2 = 1 - \frac{\sum_{i=1}^{n} (y_i - \hat{y}_i)^2}{\sum_{i=1}^{n} (y_i - \bar{y})^2}, \quad \text{MAPE} = \frac{100}{n} \sum_{i=1}^{n} \frac{|y_i - \hat{y}_i|}{y_i} \tag{10}$$
+$$R^2 = 1 - \\frac{\\sum_{i=1}^{n} (y_i - \\hat{y}_i)^2}{\\sum_{i=1}^{n} (y_i - \\bar{y})^2}, \\quad \\text{MAPE} = \\frac{100}{n} \\sum_{i=1}^{n} \\frac{|y_i - \\hat{y}_i|}{y_i} \\tag{10}$$
 
 ### 4.5. Multi-Tier Anomaly Screening Protocol
-Tier 1 uses an Isolation Forest (250 trees) for feature-space novelty, while Tier 2 employs dynamic 3-IQR residual fences on prediction errors $r_i = y_i - \hat{y}_i$:
+Tier 1 uses an Isolation Forest (250 trees) for feature-space novelty, while Tier 2 employs dynamic 3-IQR residual fences on prediction errors $r_i = y_i - \\hat{y}_i$:
 
-$$\tau_{\text{lower}} = Q_1(r_{\text{val}}) - 3 \cdot \text{IQR}(r_{\text{val}}), \quad \tau_{\text{upper}} = Q_3(r_{\text{val}}) + 3 \cdot \text{IQR}(r_{\text{val}}) \tag{11}$$
+$$\\tau_{\\text{lower}} = Q_1(r_{\\text{val}}) - 3 \\cdot \\text{IQR}(r_{\\text{val}}), \\quad \\tau_{\\text{upper}} = Q_3(r_{\\text{val}}) + 3 \\cdot \\text{IQR}(r_{\\text{val}}) \\tag{11}$$
 
 ---
 
@@ -274,3 +274,9 @@ The primary experimental dataset is publicly available on [Kaggle](https://www.k
 30. [30] R. J. Hyndman and A. B. Koehler, "Another look at measures of forecast accuracy," *International Journal of Forecasting*, vol. 22, no. 4, pp. 679–688, 2006.
 31. [31] F. T. Liu, K. M. Ting, and Z.-H. Zhou, "Isolation forest," in *Proc. 8th IEEE Int. Conf. Data Mining*, pp. 413–422, 2008.
 32. [32] S. M. Lundberg and S.-I. Lee, "A unified approach to interpreting model predictions," in *Advances in Neural Information Processing Systems*, vol. 30, pp. 4765–4774, 2017.
+"""
+
+with open(r"c:\Machine learning\Research_Paper_Residential_Energy_Prediction.md", "w", encoding="utf-8") as f:
+    f.write(md_content)
+
+print("[OK] Research_Paper_Residential_Energy_Prediction.md updated successfully!")
