@@ -58,9 +58,45 @@ Based on high-frequency IoT environmental telemetry (19,735 observations from St
 │   ├── styles.css                             # Custom styles, responsive grid, animations
 │   ├── app.js                                 # Client-side state, chart rendering, API fetch
 │   ├── server.py                              # Flask REST microservice for live inference
+│   ├── package.json                           # Frontend package definition & npm scripts
+│   ├── package-lock.json                      # Validated lockfile
 │   └── assets/                                # UI image assets and slideshows
 │
-├── paper_models/                              # Serialized ML Models for Comparative Study
+├── notebooks/                                 # Jupyter Notebooks & Experimental Work
+│   ├── EDA.ipynb                              # Exploratory data analysis notebook
+│   ├── EDA_new.ipynb                          # Extended feature correlation analysis
+│   ├── Household_Energy_Basics_and_Anomaly_Guide.ipynb # Anomaly detection tutorial
+│   ├── Household_Energy_Prediction_Final.ipynb# Final end-to-end model notebook
+│   └── paper_colab.ipynb                      # Google Colab replication notebook
+│
+├── docs/                                      # Academic Papers, Presentations & Reports
+│   ├── Research_Paper_Residential_Energy_Prediction.md   # Complete Academic Paper (MD)
+│   ├── Research_Paper_Residential_Energy_Prediction.pdf  # Compiled Research Paper (PDF)
+│   ├── Household_Power_Consumption_Final_Research_Paper.docx # Word Publication Manuscript
+│   ├── Household_Power_Consumption_Final_Research_Paper.pdf  # Camera-ready Publication PDF
+│   ├── Household_Power_Consumption_Final_Research_Paper.html # Web-friendly Paper HTML
+│   ├── Household_Power_Consumption_Project_Review.pptx    # Review Presentation Deck
+│   ├── Household_Power_Consumption_Prediction_using_ML.pptx # ML Architecture Slide Deck
+│   ├── Household_Power_Consumption_Team_Manual.docx       # Project Team Manual
+│   ├── G1_vs_OurModel_Comparative_Report.pdf  # Benchmark comparative report
+│   └── extracted_files/                       # Reference materials and walkthroughs
+│
+├── data/                                      # Smart Home & Benchmark Datasets
+│   ├── household_power.csv                    # Processed smart home telemetry (19k records)
+│   ├── paper_dataset.csv                      # Comparative benchmark dataset
+│   ├── KAG_Appliance_energydata.json          # 10-minute IoT raw dataset
+│   ├── cross_experiments_results.json         # Cross-model validation metrics
+│   └── paper_results_metadata.json            # Comparative performance metadata
+│
+├── scripts/                                   # Automation, Training & Pipeline Utilities
+│   ├── train_paper_models.py                  # Multi-model training and serialization
+│   ├── run_cross_experiments.py               # Cross-dataset validation suite
+│   ├── run_prediction.py                      # CLI inference tool
+│   ├── test_pipeline.py                       # Pipeline test suite
+│   ├── build_publication_docx.py              # Word publication generator
+│   └── generate_final_project_paper_pdf.py    # Automated paper PDF generator
+│
+├── paper_models/                              # Serialized Baseline ML Models
 │   ├── deep_neural_network.pkl                # Multi-Layer Perceptron regressor
 │   ├── extra_trees.pkl                        # Extremely Randomized Trees estimator
 │   ├── isolation_forest.pkl                   # Unsupervised anomaly detector (250 trees)
@@ -71,7 +107,7 @@ Based on high-frequency IoT environmental telemetry (19,735 observations from St
 │   ├── team_ensemble.pkl                      # Stacked ensemble pipeline artifact
 │   └── xgboost.pkl                            # Gradient boosted trees model
 │
-├── paper_plots/                               # Publication-Quality Figures & Charts
+├── paper_plots/                               # Publication Figures & Analytics
 │   ├── fig1_consumption_histogram.png        # Energy consumption distribution
 │   ├── fig2_temp_vs_consumption_scatter.png   # Micro-climate temperature regression
 │   ├── fig3_performance_metrics_comparison.png# Cross-model accuracy bar charts
@@ -89,28 +125,12 @@ Based on high-frequency IoT environmental telemetry (19,735 observations from St
 │   ├── shap_summary.png                       # SHAP game-theoretic feature attribution
 │   └── website_ui.png                         # Screenshot of interactive dashboard
 │
-├── extracted_files/                           # Reference Slides & Project Walkthroughs
-│   ├── Progress_vs_Base_Paper.pptx
-│   └── Project_Walkthrough.pdf
-│
 ├── Best_Model.pkl                             # Primary Stacked Hybrid Ensemble Model (Git-LFS)
 ├── Anomaly_Detector.pkl                       # Primary Isolation Forest Anomaly Pipeline
 ├── model_metadata.json                        # Primary model metrics, features, thresholds
-├── paper_results_metadata.json                # Comparative evaluation metadata
-├── household_power.csv                        # Processed smart home telemetry dataset
-├── KAG_Appliance_energydata.json              # Full 10-minute IoT raw dataset
-│
-├── Research_Paper_Residential_Energy_Prediction.md   # Complete Academic Research Paper
-├── Research_Paper_Residential_Energy_Prediction.pdf  # Compiled Academic Paper PDF
-├── Household_Power_Consumption_Final_Research_Paper.docx # Formatted Word Publication
-├── Household_Power_Consumption_Final_Research_Paper.pdf  # Camera-ready PDF Publication
-├── Household_Power_Consumption_Project_Review.pptx    # Comprehensive Slide Deck
-│
-├── pipeline_models.py                         # Ensemble class definitions and wrappers
-├── train_paper_models.py                      # Multi-model training and serialization script
-├── run_cross_experiments.py                   # Comparative cross-validation runner
-├── run_prediction.py                          # CLI inference utility
-└── build_publication_paper.py                 # Automated publication build script
+├── pipeline_models.py                         # Model class wrappers for unpickling
+├── requirements.txt                           # Python dependencies
+└── README.md                                  # Project overview and documentation
 ```
 
 ---
@@ -189,9 +209,9 @@ Returns comparative accuracy scores across all 7 evaluated architectures.
 ## 📜 Academic Research Paper
 
 The complete scientific paper detailing mathematical formulations, feature derivations, cross-validation protocols, and ablation experiments is available in multiple formats:
-- **Markdown:** [`Research_Paper_Residential_Energy_Prediction.md`](Research_Paper_Residential_Energy_Prediction.md)
-- **PDF (IEEE Format):** [`Household_Power_Consumption_Final_Research_Paper.pdf`](Household_Power_Consumption_Final_Research_Paper.pdf)
-- **Word Manuscript:** [`Household_Power_Consumption_Final_Research_Paper.docx`](Household_Power_Consumption_Final_Research_Paper.docx)
+- **Markdown:** [`docs/Research_Paper_Residential_Energy_Prediction.md`](docs/Research_Paper_Residential_Energy_Prediction.md)
+- **PDF (IEEE Format):** [`docs/Household_Power_Consumption_Final_Research_Paper.pdf`](docs/Household_Power_Consumption_Final_Research_Paper.pdf)
+- **Word Manuscript:** [`docs/Household_Power_Consumption_Final_Research_Paper.docx`](docs/Household_Power_Consumption_Final_Research_Paper.docx)
 
 ---
 

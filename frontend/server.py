@@ -6,7 +6,14 @@ import numpy as np
 import pandas as pd
 from flask import Flask, request, jsonify, send_from_directory, send_file
 
-sys.path.insert(0, 'c:/Machine learning')
+FRONTEND_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(FRONTEND_DIR)
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+DOCS_DIR = os.path.join(BASE_DIR, 'docs')
+PAPER_MODELS_DIR = os.path.join(BASE_DIR, 'paper_models')
+PAPER_PLOTS_DIR = os.path.join(BASE_DIR, 'paper_plots')
+
+sys.path.insert(0, BASE_DIR)
 from pipeline_models import TeamEnsemblePipeline
 
 # Definition of BlendedModel matching Best_Model.pkl
@@ -22,26 +29,25 @@ class BlendedModel:
 import __main__
 __main__.BlendedModel = BlendedModel
 
-FRONTEND_DIR = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path='')
 
 
 # 1. Load Primary ML Model (Trained on Original Smart Home Dataset: 19,735 records)
 print("Loading Primary Best_Model.pkl (Stacked Hybrid Ensemble)...")
-with open('c:/Machine learning/Best_Model.pkl', 'rb') as f:
+with open(os.path.join(BASE_DIR, 'Best_Model.pkl'), 'rb') as f:
     primary_best_model = pickle.load(f)
 
-with open('c:/Machine learning/Anomaly_Detector.pkl', 'rb') as f:
+with open(os.path.join(BASE_DIR, 'Anomaly_Detector.pkl'), 'rb') as f:
     primary_anomaly_detector = pickle.load(f)
 
-with open('c:/Machine learning/model_metadata.json', 'r') as f:
+with open(os.path.join(BASE_DIR, 'model_metadata.json'), 'r') as f:
     primary_meta = json.load(f)
 
 primary_features = primary_meta['feature_names']
 print("Primary model loaded successfully!")
 
 # 2. Load Cross-Dataset Paper Models (Trained on 200-sample Piedra Santa dataset)
-paper_models_dir = 'c:/Machine learning/paper_models'
+paper_models_dir = PAPER_MODELS_DIR
 with open(os.path.join(paper_models_dir, 'scaler.pkl'), 'rb') as f:
     paper_scaler = pickle.load(f)
 with open(os.path.join(paper_models_dir, 'linear_regression.pkl'), 'rb') as f:
@@ -57,17 +63,17 @@ with open(os.path.join(paper_models_dir, 'deep_neural_network.pkl'), 'rb') as f:
 with open(os.path.join(paper_models_dir, 'team_ensemble.pkl'), 'rb') as f:
     paper_ensemble = pickle.load(f)
 
-with open('c:/Machine learning/paper_results_metadata.json', 'r') as f:
+with open(os.path.join(DATA_DIR, 'paper_results_metadata.json'), 'r') as f:
     paper_meta = json.load(f)
 
 # Pre-compute and cache dataset summaries for fast UI rendering
 print("Pre-computing dataset descriptive statistics...")
-df_paper = pd.read_csv('c:/Machine learning/paper_dataset.csv')
+df_paper = pd.read_csv(os.path.join(DATA_DIR, 'paper_dataset.csv'))
 cached_paper_stats = df_paper.describe().T.reset_index().to_dict(orient='records')
 cached_paper_cols = list(df_paper.columns)
 cached_paper_samples = df_paper.head(10).to_dict(orient='records')
 
-df_orig = pd.read_csv('c:/Machine learning/household_power.csv')
+df_orig = pd.read_csv(os.path.join(DATA_DIR, 'household_power.csv'))
 cached_orig_stats = df_orig.describe().T.reset_index().to_dict(orient='records')
 cached_orig_cols = list(df_orig.columns)
 cached_orig_samples = df_orig.head(10).to_dict(orient='records')
@@ -80,24 +86,24 @@ def serve_index():
 
 @app.route('/assets/<path:filename>')
 def serve_assets(filename):
-    return send_from_directory('c:/Machine learning/frontend/assets', filename)
+    return send_from_directory(os.path.join(FRONTEND_DIR, 'assets'), filename)
 
 @app.route('/plots/<path:filename>')
 def serve_plots(filename):
-    return send_from_directory('c:/Machine learning/paper_plots', filename)
+    return send_from_directory(PAPER_PLOTS_DIR, filename)
 
 @app.route('/Research_Paper_Residential_Energy_Prediction.pdf')
 def serve_paper_pdf():
-    return send_from_directory('c:/Machine learning', 'Research_Paper_Residential_Energy_Prediction.pdf', as_attachment=False)
+    return send_from_directory(DOCS_DIR, 'Research_Paper_Residential_Energy_Prediction.pdf', as_attachment=False)
 
 # Direct Dataset Downloads
 @app.route('/api/download/original_dataset')
 def download_original_dataset():
-    return send_from_directory('c:/Machine learning', 'household_power.csv', as_attachment=True)
+    return send_from_directory(DATA_DIR, 'household_power.csv', as_attachment=True)
 
 @app.route('/api/download/paper_dataset')
 def download_paper_dataset():
-    return send_from_directory('c:/Machine learning', 'paper_dataset.csv', as_attachment=True)
+    return send_from_directory(DATA_DIR, 'paper_dataset.csv', as_attachment=True)
 
 # 3. Primary Prediction Endpoint (Using Our Best_Model on Original Smart Home Dataset)
 @app.route('/api/predict', methods=['POST'])
@@ -304,42 +310,42 @@ def get_datasets_info():
 
 @app.route('/api/paper_text', methods=['GET'])
 def get_paper_text():
-    paper_path = 'c:/Machine learning/Research_Paper_Residential_Energy_Prediction.md'
+    paper_path = os.path.join(DOCS_DIR, 'Research_Paper_Residential_Energy_Prediction.md')
     with open(paper_path, 'r', encoding='utf-8') as f:
         content = f.read()
     return jsonify({'content': content})
 
 @app.route('/api/download/final_project_paper_pdf', methods=['GET'])
 def download_final_project_paper_pdf():
-    pdf_path = 'c:/Machine learning/Household_Power_Consumption_Final_Research_Paper.pdf'
+    pdf_path = os.path.join(DOCS_DIR, 'Household_Power_Consumption_Final_Research_Paper.pdf')
     if os.path.exists(pdf_path):
         return send_file(pdf_path, as_attachment=True, download_name='Household_Power_Consumption_Final_Research_Paper.pdf')
     return jsonify({'error': 'PDF not found'}), 404
 
 @app.route('/api/download/final_project_paper_docx', methods=['GET'])
 def download_final_project_paper_docx():
-    docx_path = 'c:/Machine learning/Household_Power_Consumption_Final_Research_Paper.docx'
+    docx_path = os.path.join(DOCS_DIR, 'Household_Power_Consumption_Final_Research_Paper.docx')
     if os.path.exists(docx_path):
         return send_file(docx_path, as_attachment=True, download_name='Household_Power_Consumption_Final_Research_Paper.docx')
     return jsonify({'error': 'DOCX not found'}), 404
 
 @app.route('/api/download/comparative_pdf', methods=['GET'])
 def download_comparative_pdf():
-    pdf_path = 'c:/Machine learning/G1_vs_OurModel_Comparative_Report.pdf'
+    pdf_path = os.path.join(DOCS_DIR, 'G1_vs_OurModel_Comparative_Report.pdf')
     if os.path.exists(pdf_path):
         return send_file(pdf_path, as_attachment=True, download_name='G1_vs_OurModel_Comparative_Report.pdf')
     return jsonify({'error': 'PDF not found'}), 404
 
 @app.route('/api/download/research_paper_pdf', methods=['GET'])
 def download_research_paper_pdf():
-    pdf_path = 'c:/Machine learning/Research_Paper_Residential_Energy_Prediction.pdf'
+    pdf_path = os.path.join(DOCS_DIR, 'Research_Paper_Residential_Energy_Prediction.pdf')
     if os.path.exists(pdf_path):
         return send_file(pdf_path, as_attachment=True, download_name='Research_Paper_Residential_Energy_Prediction.pdf')
     return jsonify({'error': 'PDF not found'}), 404
 
 @app.route('/api/cross_experiments', methods=['GET'])
 def get_cross_experiments():
-    res_path = 'c:/Machine learning/cross_experiments_results.json'
+    res_path = os.path.join(DATA_DIR, 'cross_experiments_results.json')
     if os.path.exists(res_path):
         with open(res_path, 'r') as f:
             return jsonify(json.load(f))
